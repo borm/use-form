@@ -1,18 +1,13 @@
 {
   "compilerOptions": {
-    "moduleResolution": "node",
-    "outDir": "./lib",
-    "sourceMap": true,
+    "outDir": "./lib/",
     "noImplicitAny": true,
-    "module": "umd",
+    "module": "es6",
     "target": "es5",
     "jsx": "react",
     "allowJs": true
   },
   "exclude": [
     "./node_modules/**/*"
-  ],
-  "include": [
-    "./src/**/*"
   ]
 }
