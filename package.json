@@ -1,35 +1,42 @@
 {
   "name": "use-form",
-  "version": "0.0.0",
-  "description": "",
+  "version": "1.0.2",
   "main": "./lib/index.js",
-  "dependencies": {},
   "devDependencies": {
-    "@babel/cli": "^7.0.0-beta.53",
-    "@babel/core": "^7.0.0-beta.53",
-    "@babel/plugin-proposal-object-rest-spread": "^7.0.0-beta.53",
-    "@babel/plugin-transform-runtime": "^7.0.0-beta.53",
-    "@babel/preset-env": "^7.0.0-beta.53",
-    "@babel/register": "^7.0.0-beta.53",
-    "@babel/runtime": "^7.0.0-beta.53",
-    "babel-loader": "^8.0.0-beta.4",
+    "@babel/cli": "^7.5.5",
+    "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/plugin-transform-runtime": "^7.5.5",
+    "@babel/preset-env": "^7.5.5",
+    "@babel/preset-react": "^7.0.0",
+    "@babel/register": "^7.5.5",
+    "@babel/runtime": "^7.5.5",
+    "@types/react": "^16.9.1",
+    "babel-loader": "^8.0.6",
     "cross-env": "^5.2.0",
-    "rimraf": "^2.6.2",
-    "uglifyjs-webpack-plugin": "^1.2.7",
-    "webpack": "^4.16.0",
-    "webpack-cli": "^3.0.8"
+    "prettier": "^1.18.2",
+    "rimraf": "^2.6.3",
+    "ts-loader": "^6.0.4",
+    "ts-node": "^8.3.0",
+    "typescript": "^3.5.3",
+    "uglifyjs-webpack-plugin": "^2.2.0",
+    "webpack": "^4.39.1",
+    "webpack-cli": "^3.3.6",
+    "webpack-dev-server": "^3.8.0"
   },
   "scripts": {
-    "clean": "rimraf lib dist",
-    "build": "npm run clean && npm run build:lib && npm run build:umd && npm run build:umd:min",
-    "build:lib": "babel src --out-dir lib",
+    "dev": "NODE_PATH=. webpack-dev-server",
+    "dev:open": "npm run dev --open",
+    "clean": "./node_modules/.bin/rimraf lib dist",
+    "build": "npm run clean && npm run build:ts && npm run build:umd && npm run build:umd:min",
+    "build:ts": "tsc --moduleResolution node -t ES6 -m UMD --outDir ./lib --sourceMap false --jsx react ./src/index.ts",
     "build:umd": "cross-env NODE_ENV=development webpack",
     "build:umd:min": "cross-env NODE_ENV=production webpack",
     "prepublish": "npm run build"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/borm/use-form.git"
+    "url": "git+https://github.com/borm/use-form.git"
   },
   "bugs": {
     "url": "https://github.com/borm/use-form/issues"
@@ -41,5 +48,7 @@
     "lib",
     "dist"
   ],
-  "npmName": "use-form"
+  "npmName": "useform",
+  "homepage": "https://github.com/borm/use-form#readme",
+  "description": ""
 }
