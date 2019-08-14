@@ -1,17 +1,34 @@
-import { useCallback, useState } from "react";
-import useForm from "./useForm";
+import { useCallback, ReactNode, SyntheticEvent } from "react";
+import useForm from './useForm';
 
-const useField = (name: string) => {
+export type FieldProps = {
+  component: (props: object) => ReactNode;
+  type: string;
+  name: string;
+  value?: any;
+  isFocus?: boolean;
+  isBlur?: boolean;
+  isChecked?: boolean;
+  multiple?: boolean;
+  onBlur?: SyntheticEvent;
+  onChange?: SyntheticEvent;
+  onFocus?: SyntheticEvent;
+  validate?: () => any;
+};
+
+const useField = ({ name, validate = () => undefined }: FieldProps) => {
   const form = useForm();
-  const [{ value }, setState] = useState(form.getState(name));
-  // console.log(initialState);
+  form.setState('validators', name, validate);
+  const { value, error } = form.getState(name);
 
-  const onChange = useCallback((event) => {
-    form.setState('values', name, event.target.value);
-    setState(form.getState(name));
-  }, [name, value]);
+  const onChange = useCallback(
+    event => {
+      form.setValue(name, event.target.value);
+    },
+    [name, value]
+  );
 
-  return { value, onChange };
+  return { value, error, onChange, onBlur: onChange };
 };
 
 export default useField;

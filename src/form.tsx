@@ -7,7 +7,7 @@ import { FormProvider } from './context';
 type FormProps = {
   initialValues: object;
   initialErrors: object;
-  validate: (values: object) => void;
+  validate: (values: object) => object;
   onSubmit: (values: object) => void;
   children: (props: object) => React.ReactNode;
 };
@@ -23,39 +23,35 @@ const Form = ({ children, ...props }: FormProps) => {
     const api = new Api({
       initialValues,
       initialErrors,
+      validate,
+      onSubmit,
     });
     return { api, state: api.getState() };
   });
 
-  const state = useSubscription(React.useMemo(
-    () => ({
-      getState: api.getState,
-      subscribe: (callback: () => void) => {
-        api.listener.on('change', callback);
-        return () => api.listener.off('change');
-      },
-    }),
-    [initialState]
-  ));
-
-  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
-    if (isEvent(event)) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-
-    await validate(state.values);
-    await onSubmit(state.values);
-  };
+  const { values, errors } = useSubscription(
+    React.useMemo(
+      () => ({
+        getState: api.getState,
+        subscribe: (callback: () => void) => {
+          api.listener.on('change', callback);
+          return () => api.listener.off('change');
+        },
+      }),
+      [initialState]
+    )
+  );
 
   return (
     <FormProvider
       value={{
+        setValue: api.setValue,
+        setError: api.setError,
         getState: api.getState,
         setState: api.setState,
       }}
     >
-      {children({ ...state, handleSubmit })}
+      {children({ values, errors, handleSubmit: api.handleSubmit })}
     </FormProvider>
   );
 };

@@ -5,12 +5,19 @@ import { Form, Field } from '../src';
 const UseFormExample = () => {
   const form = {
     initialValues: {
-      test: 'test@test.te',
+      email: 'test@test.te',
       a: { b: 1 },
       c: { d: [[1], 5, 12] },
     },
+    initialErrors: {
+      password: 'Required',
+    },
     validate: values => {
-      console.log(values);
+      if (!values.password) {
+        return {
+          password: 'password is required',
+        };
+      }
     },
     onSubmit: values => {
       console.log(values);
@@ -26,8 +33,34 @@ const UseFormExample = () => {
             <p>Use Form Example</p>
             <Field
               type="text"
-              name="test"
-              component={props => <input {...props} />}
+              name="email"
+              component={({ error, ...props }) => (
+                <div>
+                  <input {...props} />
+                  {error}
+                </div>
+              )}
+              validate={value => {
+                if (value && value.length < 3) {
+                  return 'Email length should be more 3 symbols'
+                }
+              }}
+            />
+
+            <Field
+              type="password"
+              name="password"
+              component={({ error, ...props }) => (
+                <div>
+                  <input {...props} />
+                  {error}
+                </div>
+              )}
+              validate={value => {
+                if (value && value.length < 3) {
+                  return 'Password length should be more 3 symbols'
+                }
+              }}
             />
 
             <input type="submit" />

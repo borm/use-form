@@ -22,6 +22,7 @@ export default function deserialize(obj: object) {
       }
     }
 
+    // TODO
     // eslint-disable-next-line no-param-reassign
     // @ts-ignore
     accumulator[key] = value;
@@ -31,6 +32,7 @@ export default function deserialize(obj: object) {
   return keys(obj).reduce(
     (accumulator, key) => ({
       ...accumulator,
+      // TODO
       // @ts-ignore
       ...recur(accumulator, key, obj[key]),
     }),
