@@ -1,7 +1,6 @@
 import * as React from 'react';
 import Api from './api';
 import useSubscription from './hooks/useSubscription';
-import isEvent from './helpers/isEvent';
 import { FormProvider } from './context';
 
 type FormProps = {

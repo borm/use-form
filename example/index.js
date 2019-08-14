@@ -8,17 +8,15 @@ const UseFormExample = () => {
       email: 'test@test.te',
       a: { b: 1 },
       c: { d: [[1], 5, 12] },
+      'e.f[0]': 'g'
     },
     initialErrors: {
-      password: 'Required',
+      password: 'Initial error, from backend as example',
     },
-    validate: values => {
-      if (!values.password) {
-        return {
-          password: 'password is required',
-        };
-      }
-    },
+    validate: values => ({
+      email: !values.email && 'email is required',
+      password: !values.password && 'password is required',
+    }),
     onSubmit: values => {
       console.log(values);
     },
@@ -28,6 +26,9 @@ const UseFormExample = () => {
     <Form {...form}>
       {({ handleSubmit, ...state }) => (
         <form onSubmit={handleSubmit}>
+          <pre>
+            {JSON.stringify(state, 0, 2)}
+          </pre>
           <p>Use Form Example</p>
           <Field
             type="text"
