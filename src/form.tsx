@@ -27,7 +27,7 @@ const Form = ({ children, ...props }: FormProps) => {
     return { api, state: api.getState() };
   });
 
-  const subscription = React.useMemo(
+  const state = useSubscription(React.useMemo(
     () => ({
       getState: api.getState,
       subscribe: (callback: () => void) => {
@@ -36,9 +36,7 @@ const Form = ({ children, ...props }: FormProps) => {
       },
     }),
     [initialState]
-  );
-
-  const state = useSubscription(subscription);
+  ));
 
   const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     if (isEvent(event)) {
