@@ -1,3 +1,5 @@
+/.idea
+/__src__
 /dist
 /lib
 /node_modules
