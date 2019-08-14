@@ -1,6 +1,7 @@
 {
   "compilerOptions": {
     "outDir": "./lib/",
+    "sourceMap": true,
     "noImplicitAny": true,
     "module": "es6",
     "target": "es5",
@@ -8,6 +9,12 @@
     "allowJs": true
   },
   "exclude": [
-    "./node_modules/**/*"
+    "./dist/*",
+    "./example/*",
+    "./lib/*",
+    "./__src__/*",
+    "./__src__/**/*",
+    "./node_modules/**/*",
+    "./webpack.config.babel.js"
   ]
 }

@@ -1,42 +1,68 @@
-import { useFieldProps } from './types';
-import { form } from './types';
+import { FieldState, FieldValue } from './field';
 
-interface ApiProps {
+type ApiProps = {
   initialValues: { [key: string]: any };
   initialErrors: { [key: string]: any };
+};
+
+type State = {
+  values: Map<string, FieldValue>;
+  errors: Map<string, any>;
+} & FieldState;
+
+export type getState = (name?: string) => State;
+export type setState = (
+  key: 'values' | 'errors',
+  name: string,
+  value: any
+) => object;
+
+function mapToObject(map: Map<string, any>): any {
+  return Array.from(map.entries()).reduce((accumulator, [key, value]) => ({
+    ...accumulator,
+    [key]: value,
+  }), {});
 }
 
 export default class Api {
-  fields: form['fields'];
-  values: form['values'];
-  errors: form['errors'];
-  field: form['field'] = {
-    getState: name => this.fields.get(name),
-    setState: (name: string, state: useFieldProps) => {
-      const field = this.fields.get('name') || {};
-      return this.fields.set(name, { ...field, ...state }).get(name);
-    },
-  };
-  subscribers: form['subscribers'] = [];
-  subscribe: form['subscribe'];
-  notify: () => void;
-
+  private readonly values: State['values'];
+  private readonly errors: State['errors'];
   constructor({ initialValues = {}, initialErrors = {} }: ApiProps) {
-    this.fields = new Map();
     this.values = new Map(
       Object.keys(initialValues).map(key => [key, initialValues[key]])
     );
-    this.errors = initialErrors;
-
-    this.subscribers = [];
-    this.subscribe = callback => this.subscribers.push(callback);
-    this.notify = () => {
-      this.subscribers.forEach(subscriber =>
-        subscriber({
-          values: this.values,
-          errors: this.errors,
-        })
-      );
-    }
+    this.errors = new Map(
+      Object.keys(initialErrors).map(key => [key, initialErrors[key]])
+    );
   }
+
+  private listeners: Map<string, () => void> = new Map();
+  public listener: {
+    on: (name: string, callback: () => void) => void;
+    off: (name: string) => void;
+    emit: () => void;
+  } = {
+    on: (name, callback) => this.listeners.set(name, callback),
+    off: name => this.listeners.delete(name),
+    emit: () => this.listeners.forEach(listener => listener()),
+  };
+
+  public getState: getState = name => {
+    // console.log(Array.from(this.values.entries()));
+    const State: State = {
+      values: mapToObject(this.values),
+      errors: mapToObject(this.errors),
+      ...(name && {
+        value: this.values.get(name) || '',
+        error: this.errors.get(name) || '',
+      }),
+    };
+    return State;
+  };
+
+  public setState: setState = (key, name, value) => {
+    this[key].set(name, value);
+    this.listener.emit();
+    return this.getState();
+  };
 }

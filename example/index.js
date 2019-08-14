@@ -6,6 +6,8 @@ const UseFormExample = () => {
   const form = {
     initialValues: {
       test: 'test@test.te',
+      a: { b: 1 },
+      c: { d: [[1], 5, 12] },
     },
     validate: values => {
       console.log(values);
@@ -17,18 +19,21 @@ const UseFormExample = () => {
 
   return (
     <Form {...form}>
-      {({ handleSubmit }) => (
-        <form onSubmit={handleSubmit}>
-          <p>Use Form Example</p>
-          <Field
-            type="text"
-            name="test"
-            component={props => <input {...props} />}
-          />
+      {({ handleSubmit, ...state }) => {
+        console.log(state);
+        return (
+          <form onSubmit={handleSubmit}>
+            <p>Use Form Example</p>
+            <Field
+              type="text"
+              name="test"
+              component={props => <input {...props} />}
+            />
 
-          <input type="submit" />
-        </form>
-      )}
+            <input type="submit" />
+          </form>
+        );
+      }}
     </Form>
   );
 };

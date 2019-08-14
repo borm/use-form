@@ -1,5 +1,13 @@
 import * as React from 'react';
-import useField from './useField';
+import useField from './hooks/useField';
+
+export type FieldValue = string | boolean | Array<string | boolean>;
+export type FieldState = {
+  type?: string,
+  name?: string;
+  value?: FieldValue,
+  error?: any,
+};
 
 type FieldProps = {
   type: string;
@@ -16,8 +24,7 @@ type FieldProps = {
 };
 
 const Field = ({ name, component, ...rest }: FieldProps) => {
-  const state = useField(name, { type: rest.type, value: rest.value });
-
+  const state = useField(name);
   return component(state);
 };
 

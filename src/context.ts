@@ -1,21 +1,14 @@
 import { createContext } from 'react';
-import { form } from './types';
+import { getState, setState } from "./api";
 
-const context: form = {
-  fields: ({}),
-  values: ({}),
-  errors: ({}),
-  field: {
-    getState: name => ({}),
-    setState: props => ({}),
-  }
-};
+const getState: getState = Object;
+const setState: setState = Object;
 
-const FormContext = createContext(context);
+const FormContext = createContext({
+  getState: getState,
+  setState: setState,
+});
 
-export const {
-  Provider: FormProvider,
-  Consumer: FormConsumer,
-} = FormContext;
+export const { Provider: FormProvider, Consumer: FormConsumer } = FormContext;
 
 export default FormContext;

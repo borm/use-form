@@ -1,15 +1,16 @@
 import * as React from 'react';
-import { FormProvider } from './context';
-import isEvent from './helpers/isEvent';
 import Api from './api';
+import useSubscription from './hooks/useSubscription';
+import isEvent from './helpers/isEvent';
+import { FormProvider } from './context';
 
-interface FormProps {
-  initialValues: any | {};
-  initialErrors: any | {};
-  validate: (values: any) => object;
-  onSubmit: (values: any) => object;
-  children: any;
-}
+type FormProps = {
+  initialValues: object;
+  initialErrors: object;
+  validate: (values: object) => void;
+  onSubmit: (values: object) => void;
+  children: (props: object) => React.ReactNode;
+};
 
 const Form = ({ children, ...props }: FormProps) => {
   if (typeof children !== 'function') {
@@ -18,16 +19,26 @@ const Form = ({ children, ...props }: FormProps) => {
 
   const { initialValues, initialErrors, validate, onSubmit } = props;
 
-  const form = new Api({ initialValues, initialErrors });
-  let initialState = { values: initialValues, errors: initialErrors };
+  const [{ api, state: initialState }] = React.useState(() => {
+    const api = new Api({
+      initialValues,
+      initialErrors,
+    });
+    return { api, state: api.getState() };
+  });
 
-  const unSubscribers = [
-    form.subscribe((state: { values: any | {}; errors: any | {} }) => {
-      initialState = state;
+  const subscription = React.useMemo(
+    () => ({
+      getState: api.getState,
+      subscribe: (callback: () => void) => {
+        api.listener.on('change', callback);
+        return () => api.listener.off('change');
+      },
     }),
-  ];
+    [initialState]
+  );
 
-  const [state, setState] = React.useState(initialState);
+  const state = useSubscription(subscription);
 
   const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     if (isEvent(event)) {
@@ -35,20 +46,20 @@ const Form = ({ children, ...props }: FormProps) => {
       event.stopPropagation();
     }
 
-    console.log(form);
-    const values = Array.from(state.values.entries()).reduce(
-      (accumulator: object, [key, value]) => ({
-        ...accumulator,
-        [key]: value,
-      }),
-      {}
-    );
-
-    await validate(values);
-    await onSubmit(values);
+    await validate(state.values);
+    await onSubmit(state.values);
   };
 
-  return <FormProvider value={form}>{children({ handleSubmit })}</FormProvider>;
+  return (
+    <FormProvider
+      value={{
+        getState: api.getState,
+        setState: api.setState,
+      }}
+    >
+      {children({ ...state, handleSubmit })}
+    </FormProvider>
+  );
 };
 
 export default Form;

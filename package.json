@@ -31,7 +31,7 @@
   },
   "scripts": {
     "dev": "NODE_PATH=. webpack-dev-server",
-    "dev:open": "npm run dev --open",
+    "dev:open": "NODE_PATH=. webpack-dev-serve --open",
     "clean": "./node_modules/.bin/rimraf lib dist",
     "build": "npm run clean && npm run build:ts && npm run build:umd && npm run build:umd:min",
     "build:ts": "tsc --moduleResolution node -t ES6 -m UMD --outDir ./lib --sourceMap false --jsx react ./src/index.ts",
