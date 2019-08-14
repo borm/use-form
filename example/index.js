@@ -26,47 +26,44 @@ const UseFormExample = () => {
 
   return (
     <Form {...form}>
-      {({ handleSubmit, ...state }) => {
-        console.log(state);
-        return (
-          <form onSubmit={handleSubmit}>
-            <p>Use Form Example</p>
-            <Field
-              type="text"
-              name="email"
-              component={({ error, ...props }) => (
-                <div>
-                  <input {...props} />
-                  {error}
-                </div>
-              )}
-              validate={value => {
-                if (value && value.length < 3) {
-                  return 'Email length should be more 3 symbols'
-                }
-              }}
-            />
+      {({ handleSubmit, ...state }) => (
+        <form onSubmit={handleSubmit}>
+          <p>Use Form Example</p>
+          <Field
+            type="text"
+            name="email"
+            component={({ error, ...props }) => (
+              <div>
+                <input {...props} />
+                {error}
+              </div>
+            )}
+            validate={value => {
+              if (value && value.length < 3) {
+                return 'Email length should be more 3 symbols';
+              }
+            }}
+          />
 
-            <Field
-              type="password"
-              name="password"
-              component={({ error, ...props }) => (
-                <div>
-                  <input {...props} />
-                  {error}
-                </div>
-              )}
-              validate={value => {
-                if (value && value.length < 3) {
-                  return 'Password length should be more 3 symbols'
-                }
-              }}
-            />
+          <Field
+            type="password"
+            name="password"
+            component={({ error, ...props }) => (
+              <div>
+                <input {...props} />
+                {error}
+              </div>
+            )}
+            validate={value => {
+              if (value && value.length < 3) {
+                return 'Password length should be more 3 symbols';
+              }
+            }}
+          />
 
-            <input type="submit" />
-          </form>
-        );
-      }}
+          <input type="submit" />
+        </form>
+      )}
     </Form>
   );
 };
