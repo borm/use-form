@@ -5,6 +5,7 @@
   "devDependencies": {
     "@babel/cli": "^7.5.5",
     "@babel/core": "^7.5.5",
+    "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
     "@babel/plugin-transform-runtime": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
@@ -55,5 +56,10 @@
   ],
   "npmName": "useform",
   "homepage": "https://github.com/borm/use-form#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "react": "^16.9.0",
+    "react-dom": "^16.9.0",
+    "tslint": "^5.18.0"
+  }
 }
