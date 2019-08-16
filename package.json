@@ -19,6 +19,7 @@
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "rimraf": "^2.6.3",
+    "tslint": "^5.18.0",
     "ts-loader": "^6.0.4",
     "typescript": "^3.5.3",
     "uglifyjs-webpack-plugin": "^2.2.0",
@@ -59,7 +60,6 @@
   "description": "",
   "dependencies": {
     "react": "^16.9.0",
-    "react-dom": "^16.9.0",
-    "tslint": "^5.18.0"
+    "react-dom": "^16.9.0"
   }
 }
