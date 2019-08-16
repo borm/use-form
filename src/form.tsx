@@ -1,4 +1,4 @@
-import * as React from 'react';
+import React, { ReactNode, useState, useMemo } from 'react';
 import Api from './api';
 import useSubscription from './hooks/useSubscription';
 import { FormProvider } from './context';
@@ -8,7 +8,7 @@ type FormProps = {
   initialErrors: object;
   validate: (values: object) => object;
   onSubmit: (values: object) => void;
-  children: (props: object) => React.ReactNode;
+  children: (props: object) => ReactNode;
 };
 
 const Form = ({ children, ...props }: FormProps) => {
@@ -18,7 +18,7 @@ const Form = ({ children, ...props }: FormProps) => {
 
   const { initialValues, initialErrors, validate, onSubmit } = props;
 
-  const [{ api, state: initialState }] = React.useState(() => {
+  const [{ api, state: initialState }] = useState(() => {
     const api = new Api({
       initialValues,
       initialErrors,
@@ -29,7 +29,7 @@ const Form = ({ children, ...props }: FormProps) => {
   });
 
   const { values, errors } = useSubscription(
-    React.useMemo(
+    useMemo(
       () => ({
         getState: api.getState,
         subscribe: (callback: () => void) => {

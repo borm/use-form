@@ -1,4 +1,3 @@
-import * as React from 'react';
 import { FieldState, FieldValue } from './field';
 import isEvent from './helpers/isEvent';
 import isEmpty from './helpers/isEmpty';

@@ -1,6 +1,5 @@
-import * as React from 'react';
+import React, { ReactNode } from 'react';
 import useField, { FieldProps } from './hooks/useField';
-import { ReactNode } from "react";
 
 export type FieldValue = string | boolean | Array<string | boolean>;
 export type FieldState = {
