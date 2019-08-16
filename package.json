@@ -1,5 +1,6 @@
 {
   "name": "use-form",
+  "description": "use-form",
   "version": "1.0.6",
   "main": "./lib/index.js",
   "devDependencies": {
@@ -61,6 +62,5 @@
     "form"
   ],
   "npmName": "use-form",
-  "homepage": "https://github.com/borm/use-form#readme",
-  "description": ""
+  "homepage": "https://github.com/borm/use-form#readme"
 }
