@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Fragment } from 'react';
 import { render } from 'react-dom';
 import { Form, Field } from '../src';
 
@@ -29,109 +29,121 @@ const UseFormExample = () => {
         <form onSubmit={handleSubmit}>
           <p>Use Form Example</p>
 
-          <Field
-            type="text"
-            name="email"
-            component={({ error, ...props }) => (
-              <div>
-                <input {...props} />
-                {error}
-              </div>
-            )}
-            validate={value => {
-              if (value && value.length < 3) {
-                return 'Email length should be more 3 symbols';
-              }
-            }}
-            onFocus={() => {
-              console.log('onFocus');
-            }}
-            onBlur={() => {
-              console.log('onBlur');
-            }}
-            onChange={event => {
-              console.log(event);
-              console.log('changed');
-            }}
-          />
-
-          <Field
-            type="password"
-            name="password"
-            component={({ error, ...props }) => (
-              <div>
-                <input {...props} />
-                {error}
-              </div>
-            )}
-            validate={value => {
-              if (value && value.length < 3) {
-                return 'Password length should be more 3 symbols';
-              }
-            }}
-            onFocus={() => {
-              console.log('onFocus');
-            }}
-            onBlur={() => {
-              console.log('onBlur');
-            }}
-            onChange={event => {
-              console.log(event);
-              console.log('changed');
-            }}
-          />
-
-          <Field
-            type="select"
-            name="color"
-            multiple
-            component={({ error, ...props }) => (
-              <div>
-                <select {...props}>
-                  <option value="red">Red</option>
-                  <option value="blue">Blue</option>
-                  <option value="green">Green</option>
-                </select>
-                {error}
-              </div>
-            )}
-            validate={value => {
-              if (value && value.length < 2) {
-                return 'You should select 2 options min';
-              }
-            }}
-            onChange={event => {
-              console.log(event);
-              console.log('changed');
-            }}
-          />
-
-          <Field
-            type="checkbox"
-            name="remember"
-            component={({ error, ...props }) => (
-              <div>
-                <input {...props} />
-                {error}
-              </div>
-            )}
-            validate={value => {
-              console.log(value);
-              if (!value) {
-                return 'Should be checked';
-              }
-            }}
-            onFocus={() => {
-              console.log('onFocus');
-            }}
-            onBlur={() => {
-              console.log('onBlur');
-            }}
-            onChange={event => {
-              console.log(event);
-              console.log('changed');
-            }}
-          />
+          <fieldset>
+            <legend>Email:</legend>
+            <Field
+              type="text"
+              name="email"
+              component={({ error, ...props }) => (
+                <Fragment>
+                  <input {...props} />
+                  <p className="error">{error}</p>
+                </Fragment>
+              )}
+              validate={value => {
+                if (value && value.length < 3) {
+                  return 'Email length should be more 3 symbols';
+                }
+              }}
+              onFocus={() => {
+                console.log('onFocus');
+              }}
+              onBlur={() => {
+                console.log('onBlur');
+              }}
+              onChange={event => {
+                console.log(event);
+                console.log('changed');
+              }}
+            />
+          </fieldset>
+          <fieldset>
+            <legend>Password:</legend>
+            <Field
+              type="password"
+              name="password"
+              component={({ error, ...props }) => (
+                <Fragment>
+                  <input {...props} />
+                  <p className="error">{error}</p>
+                </Fragment>
+              )}
+              validate={value => {
+                if (value && value.length < 3) {
+                  return 'Password length should be more 3 symbols';
+                }
+              }}
+              onFocus={() => {
+                console.log('onFocus');
+              }}
+              onBlur={() => {
+                console.log('onBlur');
+              }}
+              onChange={event => {
+                console.log(event);
+                console.log('changed');
+              }}
+            />
+          </fieldset>
+          <fieldset>
+            <legend>Color:</legend>
+            <Field
+              type="select"
+              name="color"
+              multiple
+              component={({ error, ...props }) => (
+                <Fragment>
+                  <select {...props}>
+                    <option value="red">Red</option>
+                    <option value="blue">Blue</option>
+                    <option value="green">Green</option>
+                  </select>
+                  <p className="error">{error}</p>
+                </Fragment>
+              )}
+              validate={value => {
+                if (value && value.length < 2) {
+                  return 'You should select 2 options min';
+                }
+              }}
+              onChange={event => {
+                console.log(event);
+                console.log('changed');
+              }}
+            />
+          </fieldset>
+          <fieldset>
+            <legend>Remember:</legend>
+            <Field
+              type="checkbox"
+              name="remember"
+              component={({ error, ...props }) => (
+                <Fragment>
+                  <label htmlFor="remember">
+                    <input id="remember" {...props} />
+                    Remember me?
+                  </label>
+                  <p className="error">{error}</p>
+                </Fragment>
+              )}
+              validate={value => {
+                console.log(value);
+                if (!value) {
+                  return 'Should be checked';
+                }
+              }}
+              onFocus={() => {
+                console.log('onFocus');
+              }}
+              onBlur={() => {
+                console.log('onBlur');
+              }}
+              onChange={event => {
+                console.log(event);
+                console.log('changed');
+              }}
+            />
+          </fieldset>
 
           <input type="submit" />
 
