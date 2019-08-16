@@ -1,7 +1,15 @@
-## use-form
+# use-form [![NPM version](https://img.shields.io/npm/v/use-form.svg?style=flat)](https://www.npmjs.com/package/use-form) [![NPM monthly downloads](https://img.shields.io/npm/dm/use-form.svg?style=flat)](https://npmjs.org/package/use-form) [![NPM total downloads](https://img.shields.io/npm/dt/use-form.svg?style=flat)](https://npmjs.org/package/use-form)
 
 > In development
 
+## Install
+
+Install with [npm](https://www.npmjs.com/):
+```sh
+$ npm install --save use-form
+```
+
+## Usage
 ```jsx
 import React from 'react';
 import { render } from 'react-dom';
@@ -77,3 +85,9 @@ const UseFormExample = () => {
 render(<UseFormExample />, document.getElementById('app'));
 
 ```
+
+## About
+Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/borm/use-form/issues/new).
+
+### License
+[MIT License](LICENSE).

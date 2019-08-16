@@ -1,6 +1,6 @@
 {
   "name": "use-form",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "main": "./lib/index.js",
   "devDependencies": {
     "@babel/cli": "^7.5.5",
@@ -49,17 +49,18 @@
     "url": "https://github.com/borm/use-form/issues"
   },
   "author": "borm",
-  "license": "ISC",
+  "license": "MIT",
   "files": [
     "README.md",
     "lib",
     "dist"
   ],
-  "npmName": "useform",
+  "keywords": [
+    "react",
+    "hooks",
+    "form"
+  ],
+  "npmName": "use-form",
   "homepage": "https://github.com/borm/use-form#readme",
-  "description": "",
-  "dependencies": {
-    "react": "^16.9.0",
-    "react-dom": "^16.9.0"
-  }
+  "description": ""
 }
