@@ -7,6 +7,7 @@ export type FieldState = {
   name?: string;
   value?: FieldValue,
   error?: any,
+  validate?: (value: any, values: object) => any
 };
 
 const Field = (props: FieldProps) => {

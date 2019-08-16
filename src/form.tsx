@@ -44,10 +44,9 @@ const Form = ({ children, ...props }: FormProps) => {
   return (
     <FormProvider
       value={{
-        setValue: api.setValue,
-        setError: api.setError,
+        setField: api.setField,
+        getField: api.getField,
         getState: api.getState,
-        setState: api.setState,
       }}
     >
       {children({ values, errors, handleSubmit: api.handleSubmit })}

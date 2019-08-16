@@ -30,7 +30,36 @@ enum actions {
   FINISH,
 }
 
-export default class OwnParser {
+const getAction = (currentKey: string) => {
+  if (currentKey === '.') {
+    return actions.DOT;
+  }
+
+  if (currentKey === '[') {
+    return actions.BRACE_LEFT;
+  }
+
+  if (currentKey === ']') {
+    return actions.BRACE_RIGHT;
+  }
+
+  if (/^\d+$/.test(currentKey)) {
+    return actions.INDEX;
+  }
+
+  if (typeof currentKey === 'undefined') {
+    return actions.FINISH;
+  }
+
+  if (
+    /^[a-zA-Z0-9]+$/.test(currentKey) &&
+    typeof currentKey !== 'undefined'
+  ) {
+    return actions.NAME;
+  }
+};
+
+class Serializer {
   constructor(object: SerializerObjectType) {
     this.objectToParse = object;
   }
@@ -43,36 +72,7 @@ export default class OwnParser {
 
   value: ValueType = null;
 
-  _getAction = (currentKey: string) => {
-    if (currentKey === '.') {
-      return actions.DOT;
-    }
-
-    if (currentKey === '[') {
-      return actions.BRACE_LEFT;
-    }
-
-    if (currentKey === ']') {
-      return actions.BRACE_RIGHT;
-    }
-
-    if (/^\d+$/.test(currentKey)) {
-      return actions.INDEX;
-    }
-
-    if (typeof currentKey === 'undefined') {
-      return actions.FINISH;
-    }
-
-    if (
-      /^[a-zA-Z0-9]+$/.test(currentKey) &&
-      typeof currentKey !== 'undefined'
-    ) {
-      return actions.NAME;
-    }
-  };
-
-  _parseItem = (
+  parseItem = (
     result: ResultType,
     keyCurrent: string = '',
     currentIndex: number = 0,
@@ -80,7 +80,7 @@ export default class OwnParser {
   ) => {
     const currentKey = this.keyOriginal[currentIndex];
     const keyCurrentNumber: number = parseInt(keyCurrent, 10);
-    const action = this._getAction(currentKey);
+    const action = getAction(currentKey);
 
     const graph: {
       [key: string]: {
@@ -93,7 +93,7 @@ export default class OwnParser {
             this.result = {};
             result = this.result;
           }
-          this._parseItem(
+          this.parseItem(
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
@@ -106,7 +106,7 @@ export default class OwnParser {
             result = this.result;
           }
 
-          this._parseItem(
+          this.parseItem(
             this.result,
             '',
             currentIndex + 1,
@@ -120,7 +120,7 @@ export default class OwnParser {
             (result as ResultObjectType)[keyCurrent] = {};
           }
 
-          this._parseItem(
+          this.parseItem(
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
@@ -132,7 +132,7 @@ export default class OwnParser {
             (result as ResultObjectType)[keyCurrent] = [];
           }
 
-          this._parseItem(
+          this.parseItem(
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
@@ -143,7 +143,7 @@ export default class OwnParser {
           (result as ResultObjectType)[keyCurrent] = this.value;
         },
         [actions.NAME]: () => {
-          this._parseItem(
+          this.parseItem(
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
@@ -153,7 +153,7 @@ export default class OwnParser {
       },
       [statuses.ARRAY_INDEX]: {
         [actions.INDEX]: () => {
-          this._parseItem(
+          this.parseItem(
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
@@ -161,7 +161,7 @@ export default class OwnParser {
           );
         },
         [actions.BRACE_RIGHT]: () => {
-          this._parseItem(
+          this.parseItem(
             result,
             keyCurrent,
             currentIndex + 1,
@@ -175,7 +175,7 @@ export default class OwnParser {
             (result as ResultArrayType)[keyCurrentNumber] = [];
           }
 
-          this._parseItem(
+          this.parseItem(
             (result as ResultArrayType)[keyCurrentNumber] as ResultType,
             '',
             currentIndex + 1,
@@ -190,7 +190,7 @@ export default class OwnParser {
             (result as ResultObjectType)[keyCurrent] = {};
           }
 
-          this._parseItem(
+          this.parseItem(
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
@@ -207,9 +207,14 @@ export default class OwnParser {
     Object.keys(this.objectToParse).forEach(key => {
       this.keyOriginal = key;
       this.value = this.objectToParse[key];
-      this._parseItem(this.result);
+      this.parseItem(this.result);
     });
 
     return this.result;
   }
+}
+
+export default function serialize(object: SerializerObjectType = null) {
+  const serializer = new Serializer(object);
+  return serializer.parse();
 }

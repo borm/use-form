@@ -1,8 +1,8 @@
 import { isObject, isArray } from './typeOf';
 
 const { keys } = Object;
-export default function deserialize(obj: object) {
-  function recur(accumulator: object, key: string, value: any) {
+export default function deserialize(obj: { [key: string]: any }): { [key: string]: any } {
+  function recur(accumulator: { [key: string]: any }, key: string, value: any): { [key: string]: any } {
     if (isObject(value)) {
       const objKeys = keys(value);
       if (objKeys.length) {
@@ -24,7 +24,6 @@ export default function deserialize(obj: object) {
 
     // TODO
     // eslint-disable-next-line no-param-reassign
-    // @ts-ignore
     accumulator[key] = value;
     return accumulator;
   }

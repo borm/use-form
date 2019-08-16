@@ -1,32 +1,15 @@
-
 /**
- * Test whether a value is "empty".
- * https://github.com/ianstormtaylor/is-empty
+ * isEmpty
  * @param {any} val
  * @return {Boolean}
  */
 
 export default function isEmpty(val: any) {
-  // Null and Undefined...
-  if (val == null) return true;
-
-  // Booleans...
-  if ('boolean' == typeof val) return false;
-
-  // Numbers...
-  if ('number' == typeof val) return val === 0;
+  // Undefined...
+  if ('undefined' === typeof val) return true;
 
   // Strings...
   if ('string' == typeof val) return val.length === 0;
-
-  // Functions...
-  if ('function' == typeof val) return val.length === 0;
-
-  // Arrays...
-  if (Array.isArray(val)) return val.length === 0;
-
-  // Errors...
-  if (val instanceof Error) return val.message === '';
 
   // Objects...
   if (val.toString == Object.prototype.toString) {
