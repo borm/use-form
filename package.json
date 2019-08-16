@@ -1,7 +1,7 @@
 {
   "name": "use-form",
   "description": "use-form",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "main": "./lib/index.js",
   "devDependencies": {
     "@babel/cli": "^7.5.5",

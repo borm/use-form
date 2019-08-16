@@ -3,17 +3,18 @@ import useField, { FieldProps } from './hooks/useField';
 
 export type FieldValue = string | boolean | Array<string | boolean>;
 export type FieldState = {
-  type?: string,
+  type?: string;
   name?: string;
-  value?: FieldValue,
-  error?: any,
-  validate?: (value: any, values: object) => any,
-  multiple?: boolean,
+  value?: FieldValue;
+  error?: any;
+  validate?: (value: any, values: object) => any;
+  multiple?: boolean;
 };
 
-const Field = (props: FieldProps & { component: (props: FieldProps) => ReactNode } ) => {
-  const state = useField(props);
-  return props.component(state);
-};
+const Field = ({
+  component,
+  ...props
+}: FieldProps & { component: (props: FieldProps) => ReactNode }) =>
+  component(useField(props));
 
 export default Field;

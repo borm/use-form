@@ -45,15 +45,14 @@ const UseFormExample = () => {
                   return 'Email length should be more 3 symbols';
                 }
               }}
-              onFocus={() => {
-                console.log('onFocus');
+              onFocus={event => {
+                // onFocus
               }}
-              onBlur={() => {
-                console.log('onBlur');
+              onBlur={event => {
+                // onBlur
               }}
               onChange={event => {
-                console.log(event);
-                console.log('changed');
+                // onChange
               }}
             />
           </fieldset>
@@ -73,15 +72,14 @@ const UseFormExample = () => {
                   return 'Password length should be more 3 symbols';
                 }
               }}
-              onFocus={() => {
-                console.log('onFocus');
+              onFocus={event => {
+                // onFocus
               }}
-              onBlur={() => {
-                console.log('onBlur');
+              onBlur={event => {
+                // onBlur
               }}
               onChange={event => {
-                console.log(event);
-                console.log('changed');
+                // onChange
               }}
             />
           </fieldset>
@@ -107,8 +105,7 @@ const UseFormExample = () => {
                 }
               }}
               onChange={event => {
-                console.log(event);
-                console.log('changed');
+                // onChange
               }}
             />
           </fieldset>
@@ -127,20 +124,18 @@ const UseFormExample = () => {
                 </Fragment>
               )}
               validate={value => {
-                console.log(value);
                 if (!value) {
                   return 'Should be checked';
                 }
               }}
-              onFocus={() => {
-                console.log('onFocus');
+              onFocus={event => {
+                // onFocus
               }}
-              onBlur={() => {
-                console.log('onBlur');
+              onBlur={event => {
+                // onBlur
               }}
               onChange={event => {
-                console.log(event);
-                console.log('changed');
+                // onChange
               }}
             />
           </fieldset>

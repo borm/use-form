@@ -1,3 +1,4 @@
+import { SyntheticEvent } from 'react';
 import { FieldState, FieldValue } from './field';
 import isEvent from './helpers/isEvent';
 import isEmpty from './helpers/isEmpty';
@@ -158,7 +159,7 @@ export default class Api {
           break;
       }
     }
-    console.log(value);
+
     this.values.set(name, value);
     this.setError(name);
     this.handleValidate({
@@ -189,7 +190,11 @@ export default class Api {
   };
 
   private setError: setError = (name, error) => {
-    this.errors.set(name, error);
+    if (error) {
+      this.errors.set(name, error);
+    } else {
+      this.errors.delete(name);
+    }
     this.listener.emit();
     return this.getField(name);
   };
@@ -208,7 +213,7 @@ export default class Api {
   };
 
   public handleSubmit: (
-    event: React.SyntheticEvent<HTMLFormElement>
+    event: SyntheticEvent<HTMLFormElement>
   ) => void = event => {
     if (isEvent(event)) {
       event.preventDefault();
@@ -217,7 +222,7 @@ export default class Api {
     this.handleValidate();
     this.listener.emit();
     const { errors, values } = this.getState();
-    if (isEmpty(errors)) {
+    if (!errors || isEmpty(errors)) {
       this.onSubmit(values);
     }
   };

@@ -46,10 +46,7 @@ const useField = (props: FieldProps): FieldProps => {
     onChange(event);
   };
 
-  const handleFocus = (event: SyntheticEvent) => {
-    setFieldValue(event);
-    onFocus(event);
-  };
+  const handleFocus = onFocus;
 
   const handleBlur = (event: SyntheticEvent) => {
     setFieldValue(event);
