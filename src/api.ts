@@ -4,6 +4,7 @@ import isEvent from './helpers/isEvent';
 import isEmpty from './helpers/isEmpty';
 import deserialize from './helpers/deserialize';
 import serialize from './helpers/serialize';
+import noop from "./helpers/noop";
 
 type ApiProps = {
   initialValues: { [key: string]: any };
@@ -28,9 +29,9 @@ export type setField = (
 };
 export type getField = (name?: string) => FieldState;
 export type setValue = (name: string, value: any) => FieldState;
-export type getValue = (name: string, defaultValue: any) => any;
+export type getValue = (name: string, defaultValue?: any) => any;
 export type setError = (name: string, error?: any) => FieldState;
-export type getError = (name: string, defaultError: any) => any;
+export type getError = (name: string, defaultError?: any) => any;
 
 export type getState = () => FormState;
 
@@ -45,12 +46,14 @@ function mapped(map: Map<string, any>): { [key: string]: any } {
 }
 
 export default class Api {
-  private readonly validate: (values: object) => undefined | object;
+  private readonly validate: (values: object) => undefined | { [key: string]: any };
   private readonly onSubmit: (values: object) => void;
 
   private readonly initialValues: Map<string, FieldValue> = new Map();
   private readonly initialErrors: Map<string, any> = new Map();
   private readonly fields: Map<string, FieldState> = new Map();
+  private readonly values: Map<string, FieldValue> = new Map();
+  private readonly errors: Map<string, any> = new Map();
 
   constructor({
     validate,
@@ -64,10 +67,10 @@ export default class Api {
     const values = deserialize(initialValues);
     const errors = deserialize(initialErrors);
 
-    this.initialValues = new Map(
+    this.initialValues = this.values = new Map(
       Object.keys(values).map(key => [key, values[key]])
     );
-    this.initialErrors = new Map(
+    this.initialErrors = this.errors = new Map(
       Object.keys(initialErrors).map(key => [key, errors[key]])
     );
   }
@@ -84,64 +87,80 @@ export default class Api {
   };
 
   public getState: getState = () => {
-    const fields = mapped(this.fields);
-    const { values, errors } = Object.keys(fields).reduce(
-      (accumulator, name) => ({
-        values: {
-          ...accumulator.values,
-          [name]: fields[name].value,
-        },
-        errors: {
-          ...accumulator.errors,
-          [name]: fields[name].error,
-        },
-      }),
-      { values: mapped(this.initialValues), errors: mapped(this.initialErrors) }
-    );
     const State: FormState = {
-      fields: serialize(fields),
-      values: serialize(values),
-      errors: serialize(errors),
+      fields: mapped(this.fields),
+      values: serialize(mapped(this.values)),
+      errors: serialize(mapped(this.errors)),
     };
     return State;
   };
 
   public getField: getField = name => {
     const State: FieldState = {
-      validate: () => undefined,
+      value: this.getValue(name),
+      error: this.getError(name),
+      validate: noop,
       ...this.fields.get(name),
     };
+
     return State;
   };
 
   public setField: setField = name => ({
     mount: ({
-      type,
-      value: defaultValue,
-      error: defaultError,
-      validate,
+      type = 'text',
+      validate = noop,
+      multiple = undefined,
     }: FieldState) => {
       this.fields.set(name, {
         type,
         name,
-        value: this.getValue(name, defaultValue),
-        error: this.getError(name, defaultError),
         validate,
+        multiple,
       });
-      return this.fields.get(name);
+      this.values.set(name, this.getValue(name));
+      this.errors.set(name, this.getError(name));
+      return this.getField(name);
     },
-    unmount: () => this.fields.delete(name),
+    unmount: () => {
+      this.fields.delete(name);
+      this.values.delete(name);
+      this.errors.delete(name);
+    },
     value: event => this.setValue(name, event),
     error: error => this.setError(name, error),
   });
 
   private setValue: setValue = (name, event) => {
     let value = event;
-    if (isEvent(event)) {
-      value = event.target.value;
-    }
     const field = this.getField(name);
-    this.fields.set(name, { ...field, value });
+    if (isEvent(event)) {
+      const { type } = field;
+      value = event.target.value;
+      switch (type) {
+        case 'checkbox':
+        case 'radio':
+          value = event.target.checked;
+          break;
+        case 'select':
+          const { options } = event.target;
+          value = [];
+          if (field.multiple && options && options.length) {
+            for (let index = 0; index < options.length; index++) {
+              const option = options[index];
+
+              if (option.selected) {
+                value.push(option.value);
+              }
+            }
+          }
+          break;
+        default:
+          break;
+      }
+    }
+    console.log(value);
+    this.values.set(name, value);
     this.setError(name);
     this.handleValidate({
       [name]: value,
@@ -150,12 +169,28 @@ export default class Api {
     return this.getField(name);
   };
 
-  private getValue: getValue = (name, defaultValue = '') => {
+  private getValue: getValue = (name) => {
+    const { type, multiple } = this.fields.get(name) || { type: 'text', multiple: false };
+
+    let defaultValue;
+    switch (type) {
+      case 'checkbox':
+        defaultValue = false;
+        break;
+      case 'select':
+        if (multiple) {
+          defaultValue = [];
+        }
+        break;
+      default:
+        defaultValue = '';
+        break;
+    }
     return this.initialValues.get(name) || defaultValue;
   };
 
   private setError: setError = (name, error) => {
-    this.fields.set(name, { ...this.getField(name), error });
+    this.errors.set(name, error);
     this.listener.emit();
     return this.getField(name);
   };
@@ -164,14 +199,11 @@ export default class Api {
     return this.initialErrors.get(name) || defaultError;
   };
 
-  // TODO, needs to refactoring
-  private handleValidate = (values: object) => {
+  private handleValidate = (values: object = this.getState().values) => {
     const errors = this.validate(values) || {};
 
     Object.keys(values).forEach(name => {
       const { value, validate } = this.getField(name);
-      // TODO
-      // @ts-ignore
       this.setError(name, validate(value, values) || errors[name]);
     });
   };
@@ -183,7 +215,7 @@ export default class Api {
       event.preventDefault();
       event.stopPropagation();
     }
-    this.handleValidate(this.getState().values);
+    this.handleValidate();
     this.listener.emit();
     const { errors, values } = this.getState();
     if (isEmpty(errors)) {
