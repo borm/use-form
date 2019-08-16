@@ -37,7 +37,7 @@
     "dev:open": "NODE_PATH=. webpack-dev-serve --open",
     "clean": "./node_modules/.bin/rimraf lib dist",
     "build": "npm run clean && npm run build:ts && npm run build:umd && npm run build:umd:min",
-    "build:ts": "tsc --moduleResolution node -t ES6 -m UMD --outDir ./lib --sourceMap false --jsx react ./src/index.ts",
+    "build:ts": "tsc -esModuleInterop true --moduleResolution node -t ES6 -m UMD --outDir ./lib --sourceMap false --jsx react ./src/index.ts",
     "build:umd": "cross-env NODE_ENV=development webpack",
     "build:umd:min": "cross-env NODE_ENV=production webpack",
     "prepublish": "npm run build"

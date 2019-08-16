@@ -1,4 +1,4 @@
-import React, { ReactNode } from 'react';
+import { ReactNode } from 'react';
 import useField, { FieldProps } from './hooks/useField';
 
 export type FieldValue = string | boolean | Array<string | boolean>;
