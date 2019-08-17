@@ -1,13 +1,8 @@
-import React, { ReactNode, useState, useMemo } from 'react';
-import Api from './api';
-import useSubscription from './hooks/useSubscription';
+import React, { ReactNode } from 'react';
 import { FormProvider } from './context';
+import useForm, { useFormProps } from './hooks/useForm';
 
-type FormProps = {
-  initialValues: object;
-  initialErrors: object;
-  validate: (values: object) => object;
-  onSubmit: (values: object) => void;
+type FormProps = useFormProps & {
   children: (props: object) => ReactNode;
 };
 
@@ -16,30 +11,7 @@ const Form = ({ children, ...props }: FormProps) => {
     throw new Error(`children must be specified as function`);
   }
 
-  const { initialValues, initialErrors, validate, onSubmit } = props;
-
-  const [{ api, state: initialState }] = useState(() => {
-    const api = new Api({
-      initialValues,
-      initialErrors,
-      validate,
-      onSubmit,
-    });
-    return { api, state: api.getState() };
-  });
-
-  const { values, errors } = useSubscription(
-    useMemo(
-      () => ({
-        getState: api.getState,
-        subscribe: (callback: () => void) => {
-          api.listener.on('change', callback);
-          return () => api.listener.off('change');
-        },
-      }),
-      [initialState]
-    )
-  );
+  const { api, state } = useForm(props);
 
   return (
     <FormProvider
@@ -49,7 +21,7 @@ const Form = ({ children, ...props }: FormProps) => {
         getState: api.getState,
       }}
     >
-      {children({ values, errors, handleSubmit: api.handleSubmit })}
+      {children({ ...state, handleSubmit: api.handleSubmit })}
     </FormProvider>
   );
 };

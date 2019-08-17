@@ -1,10 +1,11 @@
 import {
+  useContext,
   useRef,
   useEffect,
   useCallback,
   SyntheticEvent,
 } from 'react';
-import useForm from './useForm';
+import FormContext from '../context';
 import noop from '../helpers/noop';
 
 export type FieldProps = {
@@ -20,7 +21,7 @@ export type FieldProps = {
 };
 
 const useField = (props: FieldProps): FieldProps => {
-  const form = useForm();
+  const form = useContext(FormContext);
   const { name, onChange = noop, onFocus = noop, onBlur = noop } = props;
 
   const willMount = useRef(true);

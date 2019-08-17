@@ -1,8 +1,10 @@
-import React, { Fragment } from 'react';
+import React, { Fragment, useState } from 'react';
 import { render } from 'react-dom';
 import { Form, Field } from '../src';
 
 const UseFormExample = () => {
+  const [state, setState] = useState(0);
+
   const form = {
     initialValues: {
       email: 'test@test.te',
@@ -25,9 +27,13 @@ const UseFormExample = () => {
 
   return (
     <Form {...form}>
-      {({ handleSubmit, ...state }) => (
+      {({ handleSubmit, errors, values }) => (
         <form onSubmit={handleSubmit}>
           <p>Use Form Example</p>
+
+          <button type="button" onClick={() => setState(state + 1)}>
+            setState {state}
+          </button>
 
           <fieldset>
             <legend>Email:</legend>
@@ -142,7 +148,7 @@ const UseFormExample = () => {
 
           <input type="submit" />
 
-          <pre>{JSON.stringify(state, 0, 2)}</pre>
+          <pre>{JSON.stringify({ errors, values }, 0, 2)}</pre>
         </form>
       )}
     </Form>

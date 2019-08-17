@@ -4,7 +4,7 @@ import isEvent from './helpers/isEvent';
 import isEmpty from './helpers/isEmpty';
 import deserialize from './helpers/deserialize';
 import serialize from './helpers/serialize';
-import noop from "./helpers/noop";
+import noop from './helpers/noop';
 
 type ApiProps = {
   initialValues: { [key: string]: any };
@@ -19,6 +19,7 @@ type FormState = {
   errors: object;
 };
 
+export type getField = (name?: string) => FieldState;
 export type setField = (
   name: string
 ) => {
@@ -27,11 +28,13 @@ export type setField = (
   error: (error: any) => FieldState;
   unmount: (value?: any) => void;
 };
-export type getField = (name?: string) => FieldState;
+
+export type getDefaultValue = (name: string, defaultValue?: any) => any;
+export type getValue = (name: string, event: any) => FieldValue;
 export type setValue = (name: string, value: any) => FieldState;
-export type getValue = (name: string, defaultValue?: any) => any;
+
+export type getDefaultError = (name: string, defaultError?: any) => any;
 export type setError = (name: string, error?: any) => FieldState;
-export type getError = (name: string, defaultError?: any) => any;
 
 export type getState = () => FormState;
 
@@ -46,7 +49,9 @@ function mapped(map: Map<string, any>): { [key: string]: any } {
 }
 
 export default class Api {
-  private readonly validate: (values: object) => undefined | { [key: string]: any };
+  private readonly validate: (
+    values: object
+  ) => undefined | { [key: string]: any };
   private readonly onSubmit: (values: object) => void;
 
   private readonly initialValues: Map<string, FieldValue> = new Map();
@@ -67,12 +72,14 @@ export default class Api {
     const values = deserialize(initialValues);
     const errors = deserialize(initialErrors);
 
-    this.initialValues = this.values = new Map(
-      Object.keys(values).map(key => [key, values[key]])
-    );
-    this.initialErrors = this.errors = new Map(
-      Object.keys(initialErrors).map(key => [key, errors[key]])
-    );
+    Object.keys(values).map(key => {
+      this.setValue(key, values[key]);
+    });
+    this.initialValues = this.values;
+    Object.keys(errors).map(key => {
+      this.setError(key, errors[key]);
+    });
+    this.initialErrors = this.errors;
   }
 
   private listeners: Map<string, () => void> = new Map();
@@ -97,8 +104,8 @@ export default class Api {
 
   public getField: getField = name => {
     const State: FieldState = {
-      value: this.getValue(name),
-      error: this.getError(name),
+      value: this.values.get(name),
+      error: this.errors.get(name),
       validate: noop,
       ...this.fields.get(name),
     };
@@ -118,8 +125,8 @@ export default class Api {
         validate,
         multiple,
       });
-      this.values.set(name, this.getValue(name));
-      this.errors.set(name, this.getError(name));
+      this.setValue(name, this.getDefaultValue(name));
+      this.setError(name, this.getDefaultError(name));
       return this.getField(name);
     },
     unmount: () => {
@@ -127,50 +134,28 @@ export default class Api {
       this.values.delete(name);
       this.errors.delete(name);
     },
-    value: event => this.setValue(name, event),
-    error: error => this.setError(name, error),
+    value: event => {
+      const value = this.getValue(name, event);
+      const state = this.setValue(name, value);
+      this.setError(name);
+      this.handleValidate({
+        [name]: value,
+      });
+      this.listener.emit();
+      return state;
+    },
+    error: error => {
+      const state = this.setError(name, error);
+      this.listener.emit();
+      return state;
+    },
   });
 
-  private setValue: setValue = (name, event) => {
-    let value = event;
-    const field = this.getField(name);
-    if (isEvent(event)) {
-      const { type } = field;
-      value = event.target.value;
-      switch (type) {
-        case 'checkbox':
-        case 'radio':
-          value = event.target.checked;
-          break;
-        case 'select':
-          const { options } = event.target;
-          value = [];
-          if (field.multiple && options && options.length) {
-            for (let index = 0; index < options.length; index++) {
-              const option = options[index];
-
-              if (option.selected) {
-                value.push(option.value);
-              }
-            }
-          }
-          break;
-        default:
-          break;
-      }
-    }
-
-    this.values.set(name, value);
-    this.setError(name);
-    this.handleValidate({
-      [name]: value,
-    });
-    this.listener.emit();
-    return this.getField(name);
-  };
-
-  private getValue: getValue = (name) => {
-    const { type, multiple } = this.fields.get(name) || { type: 'text', multiple: false };
+  private getDefaultValue: getDefaultValue = name => {
+    const { type, multiple } = this.fields.get(name) || {
+      type: 'text',
+      multiple: false,
+    };
 
     let defaultValue;
     switch (type) {
@@ -189,18 +174,52 @@ export default class Api {
     return this.initialValues.get(name) || defaultValue;
   };
 
+  private getValue: getValue = (name, event) => {
+    if (isEvent(event)) {
+      const { value, checked, options } = event.target;
+      const { type, multiple } = this.getField(name);
+      switch (type) {
+        case 'checkbox':
+        case 'radio':
+          return checked;
+        case 'select':
+          if (multiple) {
+            const selected = [];
+            if (options && options.length) {
+              for (let index = 0; index < options.length; index++) {
+                const option = options[index];
+
+                if (option.selected) {
+                  selected.push(option.value);
+                }
+              }
+            }
+            return selected;
+          }
+          return value;
+        default:
+          return value;
+      }
+    }
+    return event;
+  };
+
+  private setValue: setValue = (name, value) => {
+    this.values.set(name, value);
+    return this.getField(name);
+  };
+
+  private getDefaultError: getDefaultError = (name, defaultError) => {
+    return this.initialErrors.get(name) || defaultError;
+  };
+
   private setError: setError = (name, error) => {
     if (error) {
       this.errors.set(name, error);
     } else {
       this.errors.delete(name);
     }
-    this.listener.emit();
     return this.getField(name);
-  };
-
-  private getError: getError = (name, defaultError) => {
-    return this.initialErrors.get(name) || defaultError;
   };
 
   private handleValidate = (values: object = this.getState().values) => {
