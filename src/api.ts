@@ -33,7 +33,7 @@ export type getDefaultValue = (name: string, defaultValue?: any) => any;
 export type getValue = (name: string, event: any) => FieldValue;
 export type setValue = (name: string, value: any) => FieldState;
 
-export type getDefaultError = (name: string, defaultError?: any) => any;
+export type getDefaultError = (name: string) => any;
 export type setError = (name: string, error?: any) => FieldState;
 
 export type getState = () => FormState;
@@ -209,9 +209,8 @@ export default class Api {
     return this.getField(name);
   };
 
-  private getDefaultError: getDefaultError = (name, defaultError) => {
-    return this.initialErrors.get(name) || defaultError;
-  };
+  private getDefaultError: getDefaultError = name =>
+    this.initialErrors.get(name);
 
   private setError: setError = (name, error) => {
     if (error) {

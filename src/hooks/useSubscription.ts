@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import isEqual from '../helpers/isEqual';
 import deserialize from '../helpers/deserialize';
+import isEqual from '../helpers/isEqual';
 
 type SubscriptionProps = {
   getState: () => any;

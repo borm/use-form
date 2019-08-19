@@ -13,6 +13,7 @@ const useForm = (props: useFormProps) => {
   const { initialValues, initialErrors, validate, onSubmit } = props;
 
   const [{ api, initialState }] = useState(() => {
+    // tslint:disable-next-line:no-shadowed-variable
     const api = new Api({
       initialValues,
       initialErrors,
@@ -31,8 +32,8 @@ const useForm = (props: useFormProps) => {
           return () => api.listener.off('change');
         },
       }),
-      [initialState]
-    )
+      [initialState],
+    ),
   );
   return {
     api,

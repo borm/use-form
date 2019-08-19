@@ -1,9 +1,9 @@
 import {
-  useContext,
-  useRef,
-  useEffect,
-  useCallback,
   SyntheticEvent,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
 } from 'react';
 import FormContext from '../context';
 import noop from '../helpers/noop';
@@ -39,7 +39,7 @@ const useField = (props: FieldProps): FieldProps => {
     (event: SyntheticEvent) => {
       form.setField(name).value(event);
     },
-    [name, value]
+    [name, value],
   );
 
   const handleChange = (event: SyntheticEvent) => {

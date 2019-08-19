@@ -1,3 +1,5 @@
+import { isObject } from './typeOf';
+
 /**
  * isEmpty
  * @param {any} val
@@ -6,13 +8,13 @@
 
 export default function isEmpty(val: any) {
   // Undefined...
-  if ('undefined' === typeof val) return true;
+  if ('undefined' === typeof val) { return true; }
 
   // Strings...
-  if ('string' == typeof val) return val.length === 0;
+  if ('string' === typeof val) { return val.length === 0; }
 
   // Objects...
-  if (val.toString == Object.prototype.toString) {
+  if (isObject(val)) {
     switch (val.toString()) {
 
       // Maps, Sets, Files and Errors...
@@ -24,15 +26,15 @@ export default function isEmpty(val: any) {
 
       // Plain objects...
       case '[object Object]': {
-        for (let key in val) {
-          if (Object.prototype.hasOwnProperty.call(val, key)) return false;
+        for (const key in val) {
+          if (Object.prototype.hasOwnProperty.call(val, key)) { return false; }
         }
 
-        return true
+        return true;
       }
     }
   }
 
   // Anything else...
-  return false
+  return false;
 }

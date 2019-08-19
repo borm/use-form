@@ -1,18 +1,21 @@
-import { isObject, isArray } from './typeOf';
+import { isArray, isObject } from './typeOf';
 
 const { keys } = Object;
 export default function deserialize(obj: {
   [key: string]: any;
 }): { [key: string]: any } {
+  if (!isObject(obj)) {
+    throw new Error();
+  }
   function recur(
     accumulator: { [key: string]: any },
     key: string,
-    value: any
+    value: any,
   ): { [key: string]: any } {
     if (isObject(value)) {
       const objKeys = keys(value);
       if (objKeys.length) {
-        objKeys.forEach(v => {
+        objKeys.forEach((v) => {
           recur(accumulator, `${key}.${v}`, value[v]);
         });
         return accumulator;
@@ -37,6 +40,6 @@ export default function deserialize(obj: {
       ...accumulator,
       ...recur(accumulator, key, obj[key]),
     }),
-    {}
+    {},
   );
 }

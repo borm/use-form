@@ -60,23 +60,33 @@ const getAction = (currentKey: string) => {
 };
 
 class Serializer {
+  private readonly objectToParse: SerializerObjectType = null;
+
+  private result: ResultType = null;
+
+  private keyOriginal: string = null;
+
+  private value: ValueType = null;
+
   constructor(object: SerializerObjectType) {
     this.objectToParse = object;
   }
 
-  objectToParse: SerializerObjectType = null;
+  public parse() {
+    Object.keys(this.objectToParse).forEach((key) => {
+      this.keyOriginal = key;
+      this.value = this.objectToParse[key];
+      this.parseItem(this.result);
+    });
 
-  result: ResultType = null;
+    return this.result || {};
+  }
 
-  keyOriginal: string = null;
-
-  value: ValueType = null;
-
-  parseItem = (
+  private parseItem = (
     result: ResultType,
     keyCurrent: string = '',
     currentIndex: number = 0,
-    status: statuses = statuses.INITIAL
+    status: statuses = statuses.INITIAL,
   ) => {
     const currentKey = this.keyOriginal[currentIndex];
     const keyCurrentNumber: number = parseInt(keyCurrent, 10);
@@ -84,7 +94,7 @@ class Serializer {
 
     const graph: {
       [key: string]: {
-        [key: string]: Function;
+        [key: string]: () => void;
       };
     } = {
       [statuses.INITIAL]: {
@@ -97,7 +107,7 @@ class Serializer {
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
-            statuses.OBJECT_KEY
+            statuses.OBJECT_KEY,
           );
         },
         [actions.BRACE_LEFT]: () => {
@@ -110,7 +120,7 @@ class Serializer {
             this.result,
             '',
             currentIndex + 1,
-            statuses.ARRAY_INDEX
+            statuses.ARRAY_INDEX,
           );
         },
       },
@@ -124,7 +134,7 @@ class Serializer {
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
-            statuses.INITIAL
+            statuses.INITIAL,
           );
         },
         [actions.BRACE_LEFT]: () => {
@@ -136,7 +146,7 @@ class Serializer {
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
-            statuses.ARRAY_INDEX
+            statuses.ARRAY_INDEX,
           );
         },
         [actions.FINISH]: () => {
@@ -147,7 +157,7 @@ class Serializer {
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
-            statuses.OBJECT_KEY
+            statuses.OBJECT_KEY,
           );
         },
       },
@@ -157,7 +167,7 @@ class Serializer {
             result,
             `${keyCurrent}${currentKey}`,
             currentIndex + 1,
-            statuses.ARRAY_INDEX
+            statuses.ARRAY_INDEX,
           );
         },
         [actions.BRACE_RIGHT]: () => {
@@ -165,7 +175,7 @@ class Serializer {
             result,
             keyCurrent,
             currentIndex + 1,
-            statuses.ARRAY_INDEX_END
+            statuses.ARRAY_INDEX_END,
           );
         },
       },
@@ -179,7 +189,7 @@ class Serializer {
             (result as ResultArrayType)[keyCurrentNumber] as ResultType,
             '',
             currentIndex + 1,
-            statuses.ARRAY_INDEX
+            statuses.ARRAY_INDEX,
           );
         },
         [actions.FINISH]: () => {
@@ -194,23 +204,13 @@ class Serializer {
             (result as ResultObjectType)[keyCurrent] as ResultType,
             '',
             currentIndex + 1,
-            statuses.INITIAL
+            statuses.INITIAL,
           );
         },
       },
     };
 
     graph[status][action]();
-  };
-
-  parse() {
-    Object.keys(this.objectToParse).forEach(key => {
-      this.keyOriginal = key;
-      this.value = this.objectToParse[key];
-      this.parseItem(this.result);
-    });
-
-    return this.result;
   }
 }
 
