@@ -21,7 +21,11 @@ const Form = ({ children, ...props }: FormProps) => {
         getState: api.getState,
       }}
     >
-      {children({ ...state, handleSubmit: api.handleSubmit })}
+      {children({
+        ...state,
+        handleSubmit: api.handleSubmit,
+        handleReset: api.handleReset,
+      })}
     </FormProvider>
   );
 };

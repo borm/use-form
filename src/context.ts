@@ -1,14 +1,14 @@
 import { createContext } from 'react';
-import { setField, getField, getState } from "./api";
+import { getField, getState, setField } from './api';
 
 const setField: setField = Object;
 const getField: getField = Object;
 const getState: getState = Object;
 
 const FormContext = createContext({
-  setField: setField,
-  getField: getField,
-  getState: getState,
+  setField,
+  getField,
+  getState,
 });
 
 export const { Provider: FormProvider, Consumer: FormConsumer } = FormContext;

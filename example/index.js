@@ -27,7 +27,7 @@ const UseFormExample = () => {
 
   return (
     <Form {...form}>
-      {({ handleSubmit, errors, values }) => (
+      {({ handleReset, handleSubmit, errors, values }) => (
         <form onSubmit={handleSubmit}>
           <p>Use Form Example</p>
 
@@ -146,6 +146,7 @@ const UseFormExample = () => {
             />
           </fieldset>
 
+          <input type="reset" onClick={handleReset} />
           <input type="submit" />
 
           <pre>{JSON.stringify({ errors, values }, 0, 2)}</pre>

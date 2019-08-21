@@ -1,10 +1,11 @@
 import { SyntheticEvent } from 'react';
 import { FieldState, FieldValue } from './field';
-import isEvent from './helpers/isEvent';
-import isEmpty from './helpers/isEmpty';
 import deserialize from './helpers/deserialize';
-import serialize from './helpers/serialize';
+import isEmpty from './helpers/isEmpty';
+import isEvent from './helpers/isEvent';
 import noop from './helpers/noop';
+import serialize from './helpers/serialize';
+import { isObject } from './helpers/typeOf';
 
 type ApiProps = {
   initialValues: { [key: string]: any };
@@ -21,7 +22,7 @@ type FormState = {
 
 export type getField = (name?: string) => FieldState;
 export type setField = (
-  name: string
+  name: string,
 ) => {
   mount: (props: FieldState) => FieldState;
   value: (value: any) => FieldState;
@@ -44,13 +45,22 @@ function mapped(map: Map<string, any>): { [key: string]: any } {
       ...accumulator,
       [key]: value,
     }),
-    {}
+    {},
   );
 }
 
 export default class Api {
+  public listener: {
+    on: (name: string, callback: () => void) => void;
+    off: (name: string) => void;
+    emit: () => void;
+  } = {
+    on: (name, callback) => this.listeners.set(name, callback),
+    off: (name) => this.listeners.delete(name),
+    emit: () => this.listeners.forEach((listener) => listener()),
+  };
   private readonly validate: (
-    values: object
+    values: object,
   ) => undefined | { [key: string]: any };
   private readonly onSubmit: (values: object) => void;
 
@@ -59,6 +69,8 @@ export default class Api {
   private readonly fields: Map<string, FieldState> = new Map();
   private readonly values: Map<string, FieldValue> = new Map();
   private readonly errors: Map<string, any> = new Map();
+
+  private listeners: Map<string, () => void> = new Map();
 
   constructor({
     validate,
@@ -72,26 +84,16 @@ export default class Api {
     const values = deserialize(initialValues);
     const errors = deserialize(initialErrors);
 
-    Object.keys(values).map(key => {
+    Object.keys(values).map((key) => {
+      this.initialValues.set(key, values[key]);
       this.setValue(key, values[key]);
     });
-    this.initialValues = this.values;
-    Object.keys(errors).map(key => {
+
+    Object.keys(errors).map((key) => {
+      this.initialErrors.set(key, errors[key]);
       this.setError(key, errors[key]);
     });
-    this.initialErrors = this.errors;
   }
-
-  private listeners: Map<string, () => void> = new Map();
-  public listener: {
-    on: (name: string, callback: () => void) => void;
-    off: (name: string) => void;
-    emit: () => void;
-  } = {
-    on: (name, callback) => this.listeners.set(name, callback),
-    off: name => this.listeners.delete(name),
-    emit: () => this.listeners.forEach(listener => listener()),
-  };
 
   public getState: getState = () => {
     const State: FormState = {
@@ -100,9 +102,9 @@ export default class Api {
       errors: serialize(mapped(this.errors)),
     };
     return State;
-  };
+  }
 
-  public getField: getField = name => {
+  public getField: getField = (name) => {
     const State: FieldState = {
       value: this.values.get(name),
       error: this.errors.get(name),
@@ -111,13 +113,13 @@ export default class Api {
     };
 
     return State;
-  };
+  }
 
-  public setField: setField = name => ({
+  public setField: setField = (name) => ({
     mount: ({
       type = 'text',
       validate = noop,
-      multiple = undefined,
+      multiple,
     }: FieldState) => {
       this.fields.set(name, {
         type,
@@ -134,7 +136,7 @@ export default class Api {
       this.values.delete(name);
       this.errors.delete(name);
     },
-    value: event => {
+    value: (event) => {
       const value = this.getValue(name, event);
       const state = this.setValue(name, value);
       this.setError(name);
@@ -144,14 +146,55 @@ export default class Api {
       this.listener.emit();
       return state;
     },
-    error: error => {
+    error: (error) => {
       const state = this.setError(name, error);
       this.listener.emit();
       return state;
     },
-  });
+  })
 
-  private getDefaultValue: getDefaultValue = name => {
+  public handleReset: (event: SyntheticEvent) => void = (event) => {
+    const prevValues = mapped(this.values);
+    this.errors.clear();
+    this.values.clear();
+
+    Object.keys(mapped(this.initialErrors)).map((key) => {
+      this.setError(key, this.getDefaultError(key));
+    });
+
+    const prevKeys = Object.keys(prevValues);
+    if (isEvent(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+      prevKeys.map((key) => {
+        this.setValue(key, this.getDefaultValue(key));
+      });
+    } else if (isObject(event) && !isEmpty(event)) {
+      const nextValues = deserialize(event);
+      prevKeys.map((key) => {
+        this.setValue(key, nextValues[key] || this.getDefaultValue(key));
+      });
+    }
+
+    this.listener.emit();
+  }
+
+  public handleSubmit: (
+    event: SyntheticEvent<HTMLFormElement>,
+  ) => void = (event) => {
+    if (isEvent(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.handleValidate();
+    this.listener.emit();
+    const { errors, values } = this.getState();
+    if (!errors || isEmpty(errors)) {
+      this.onSubmit(values);
+    }
+  }
+
+  private getDefaultValue: getDefaultValue = (name) => {
     const { type, multiple } = this.fields.get(name) || {
       type: 'text',
       multiple: false,
@@ -172,7 +215,7 @@ export default class Api {
         break;
     }
     return this.initialValues.get(name) || defaultValue;
-  };
+  }
 
   private getValue: getValue = (name, event) => {
     if (isEvent(event)) {
@@ -186,7 +229,7 @@ export default class Api {
           if (multiple) {
             const selected = [];
             if (options && options.length) {
-              for (let index = 0; index < options.length; index++) {
+              for (const index of options) {
                 const option = options[index];
 
                 if (option.selected) {
@@ -202,15 +245,15 @@ export default class Api {
       }
     }
     return event;
-  };
+  }
 
   private setValue: setValue = (name, value) => {
     this.values.set(name, value);
     return this.getField(name);
-  };
+  }
 
-  private getDefaultError: getDefaultError = name =>
-    this.initialErrors.get(name);
+  private getDefaultError: getDefaultError = (name) =>
+    this.initialErrors.get(name)
 
   private setError: setError = (name, error) => {
     if (error) {
@@ -219,29 +262,14 @@ export default class Api {
       this.errors.delete(name);
     }
     return this.getField(name);
-  };
+  }
 
   private handleValidate = (values: object = this.getState().values) => {
     const errors = this.validate(values) || {};
 
-    Object.keys(values).forEach(name => {
+    Object.keys(values).forEach((name) => {
       const { value, validate } = this.getField(name);
       this.setError(name, validate(value, values) || errors[name]);
     });
-  };
-
-  public handleSubmit: (
-    event: SyntheticEvent<HTMLFormElement>
-  ) => void = event => {
-    if (isEvent(event)) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    this.handleValidate();
-    this.listener.emit();
-    const { errors, values } = this.getState();
-    if (!errors || isEmpty(errors)) {
-      this.onSubmit(values);
-    }
-  };
+  }
 }

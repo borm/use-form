@@ -47,7 +47,7 @@ const UseFormExample = () => {
 
   return (
     <Form {...form}>
-      {({ handleSubmit, ...state }) => (
+      {({ handleReset, handleSubmit, ...state }) => (
         <form onSubmit={handleSubmit}>
           <pre>
             {JSON.stringify(state, 0, 2)}
@@ -84,7 +84,7 @@ const UseFormExample = () => {
               }
             }}
           />
-
+          <input type="reset" onClick={handleReset} />
           <input type="submit" />
         </form>
       )}

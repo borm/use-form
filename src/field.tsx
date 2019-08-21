@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import useField, { FieldProps } from './hooks/useField';
 
-export type FieldValue = string | boolean | Array<string | boolean>;
+export type FieldValue = any;
 export type FieldState = {
   type?: string;
   name?: string;
