@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import deserialize from '../helpers/deserialize';
+import flatten from '../helpers/flatten';
 import isEqual from '../helpers/isEqual';
 
 type SubscriptionProps = {
@@ -21,7 +21,7 @@ export default function useSubscription(props: SubscriptionProps) {
 
       return setState((prevState: object) => {
         const nextState = getState();
-        if (isEqual(deserialize(prevState), deserialize(nextState))) {
+        if (isEqual(flatten(prevState), flatten(nextState))) {
           return prevState;
         }
 

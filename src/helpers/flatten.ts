@@ -1,7 +1,17 @@
-import { isArray, isObject } from './typeOf';
+function typeOf(operand: any) {
+  return Object.prototype.toString.call(operand).slice(8, -1).toLowerCase();
+}
+
+function isArray(array: any) {
+  return typeOf(array) === 'array';
+}
+
+function isObject(object: any) {
+  return typeOf(object) === 'object';
+}
 
 const { keys } = Object;
-export default function deserialize(obj: {
+export default function flatten(obj: {
   [key: string]: any;
 }): { [key: string]: any } {
   if (!isObject(obj)) {

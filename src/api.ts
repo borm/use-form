@@ -1,10 +1,10 @@
 import { SyntheticEvent } from 'react';
 import { FieldState, FieldValue } from './field';
-import deserialize from './helpers/deserialize';
+import flatten from './helpers/flatten';
 import isEmpty from './helpers/isEmpty';
 import isEvent from './helpers/isEvent';
+import nested from './helpers/nested';
 import noop from './helpers/noop';
-import serialize from './helpers/serialize';
 import { isObject } from './helpers/typeOf';
 
 type ApiProps = {
@@ -73,16 +73,16 @@ export default class Api {
   private listeners: Map<string, () => void> = new Map();
 
   constructor({
-    validate,
-    onSubmit,
-    initialValues = {},
-    initialErrors = {},
-  }: ApiProps) {
+                validate,
+                onSubmit,
+                initialValues = {},
+                initialErrors = {},
+              }: ApiProps) {
     this.validate = validate;
     this.onSubmit = onSubmit;
 
-    const values = deserialize(initialValues);
-    const errors = deserialize(initialErrors);
+    const values = flatten(initialValues);
+    const errors = flatten(initialErrors);
 
     Object.keys(values).map((key) => {
       this.initialValues.set(key, values[key]);
@@ -98,8 +98,8 @@ export default class Api {
   public getState: getState = () => {
     const State: FormState = {
       fields: mapped(this.fields),
-      values: serialize(mapped(this.values)),
-      errors: serialize(mapped(this.errors)),
+      values: nested(mapped(this.values)),
+      errors: nested(mapped(this.errors)),
     };
     return State;
   }
@@ -117,10 +117,10 @@ export default class Api {
 
   public setField: setField = (name) => ({
     mount: ({
-      type = 'text',
-      validate = noop,
-      multiple,
-    }: FieldState) => {
+              type = 'text',
+              validate = noop,
+              multiple,
+            }: FieldState) => {
       this.fields.set(name, {
         type,
         name,
@@ -170,7 +170,7 @@ export default class Api {
         this.setValue(key, this.getDefaultValue(key));
       });
     } else if (isObject(event) && !isEmpty(event)) {
-      const nextValues = deserialize(event);
+      const nextValues = flatten(event);
       prevKeys.map((key) => {
         this.setValue(key, nextValues[key] || this.getDefaultValue(key));
       });
