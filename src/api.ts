@@ -1,9 +1,8 @@
+import { flatten, nested } from 'nest-deep';
 import { SyntheticEvent } from 'react';
 import { FieldState, FieldValue } from './field';
-import flatten from './helpers/flatten';
 import isEmpty from './helpers/isEmpty';
 import isEvent from './helpers/isEvent';
-import nested from './helpers/nested';
 import noop from './helpers/noop';
 import { isObject } from './helpers/typeOf';
 
@@ -116,11 +115,7 @@ export default class Api {
   }
 
   public setField: setField = (name) => ({
-    mount: ({
-              type = 'text',
-              validate = noop,
-              multiple,
-            }: FieldState) => {
+    mount: ({ type = 'text', validate = noop, multiple }: FieldState) => {
       this.fields.set(name, {
         type,
         name,

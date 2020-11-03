@@ -1,5 +1,5 @@
+import { flatten } from 'nest-deep';
 import { useEffect, useState } from 'react';
-import flatten from '../helpers/flatten';
 import isEqual from '../helpers/isEqual';
 
 type SubscriptionProps = {

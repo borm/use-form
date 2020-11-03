@@ -8,8 +8,13 @@
     "jsx": "react",
     "allowJs": true,
     "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true
+    "allowSyntheticDefaultImports": true,
+    "moduleResolution": "node"
   },
+  "filesGlob": [
+    "**/*.ts",
+    "!node_modules/**/*"
+  ],
   "exclude": [
     "./dist/*",
     "./example/*",
