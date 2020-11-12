@@ -5,13 +5,11 @@ export default function get(
   path: string,
   defaultValue?: any
 ) {
-  return (
-    path
-      .match(/([^[.\]])+/g)
-      .reduce(
-        (acc, key) =>
-          typeOf(acc).is('array', 'object') ? acc[key] : undefined,
-        obj
-      ) || defaultValue
-  );
+  const value = path
+    .match(/([^[.\]])+/g)
+    .reduce(
+      (acc, key) => (typeOf(acc).is('array', 'object') ? acc[key] : undefined),
+      obj
+    );
+  return !typeOf(value).is('undefined') ? value : defaultValue;
 }

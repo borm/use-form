@@ -6,6 +6,7 @@ export type FieldInput = {
   type?: string;
   name?: string;
   value?: FieldValue;
+  checked?: boolean;
   multiple?: boolean;
   onChange?: (event: SyntheticEvent) => void;
   onFocus?: (event: SyntheticEvent) => void;
@@ -13,13 +14,13 @@ export type FieldInput = {
 };
 
 export type FieldMeta = {
-  error?: string,
-  touched?: boolean,
+  error?: string;
+  touched?: boolean;
   validate?: (value: any, values: object) => any;
 };
 export type FieldState = {
-  input: FieldInput,
-  meta: FieldMeta,
+  input: FieldInput;
+  meta: FieldMeta;
 };
 
 export type FieldMountState = FieldInput & FieldMeta;

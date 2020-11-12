@@ -27,7 +27,14 @@ export type FieldProps = {
 
 const useField = (props: FieldProps): FieldState => {
   const form = useContext(FormContext);
-  const { name, onChange = noop, onFocus = noop, onBlur = noop, validate = noop, ...rest } = props;
+  const {
+    name,
+    onChange = noop,
+    onFocus = noop,
+    onBlur = noop,
+    validate = noop,
+    ...rest
+  } = props;
 
   const willMount = useRef(true);
   if (willMount.current) {
@@ -41,28 +48,37 @@ const useField = (props: FieldProps): FieldState => {
   const { type, value, multiple } = form.getField(name);
   const { error } = form.getMeta(name);
 
-  const handleChange = useCallback((event: SyntheticEvent) => {
-    form.setField(name).value(event);
-    onChange(event);
-  }, [name]);
+  const handleChange = useCallback(
+    (event: SyntheticEvent) => {
+      form.setField(name).value(event);
+      onChange(event);
+    },
+    [name]
+  );
 
-  const handleFocus = useCallback((event: SyntheticEvent) => {
-    form.setField(name).meta('touched', true);
-    onFocus(event);
-  }, [name]);
+  const handleFocus = useCallback(
+    (event: SyntheticEvent) => {
+      form.setField(name).meta('touched', true);
+      onFocus(event);
+    },
+    [name]
+  );
 
-  const handleBlur = useCallback((event: SyntheticEvent) => {
-    form.setField(name).value(event);
-    onBlur(event);
-  }, [name]);
+  const handleBlur = useCallback(
+    (event: SyntheticEvent) => {
+      form.setField(name).value(event);
+      onBlur(event);
+    },
+    [name]
+  );
 
   return {
     input: {
       name,
       type: type === 'select' ? undefined : type,
-      ...type === 'checkbox' && {
+      ...(type === 'checkbox' && {
         checked: value,
-      },
+      }),
       value,
       multiple,
       onChange: handleChange,

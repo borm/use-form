@@ -224,13 +224,8 @@ export default class Api {
   });
 
   public getMeta: getMeta = name => {
-    /*if (name === 'color[0]') {
-      console.log(nested(mapped(this.meta.errors)));
-      console.log(get(nested(mapped(this.meta.errors)), name));
-    }*/
     const State: FieldMeta = {
       error: get(nested(mapped(this.meta.errors)), name),
-      // error: this.meta.errors.get(name),
       touched: this.meta.touched.get(name),
       validate: this.meta.validations.get(name),
     };
