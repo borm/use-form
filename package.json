@@ -1,7 +1,7 @@
 {
   "name": "use-form",
   "description": "use-form",
-  "version": "1.0.12",
+  "version": "2.0.0",
   "main": "./lib/index.js",
   "scripts": {
     "dev": "NODE_PATH=. webpack-dev-server",
@@ -36,13 +36,14 @@
   "npmName": "use-form",
   "homepage": "https://github.com/borm/use-form#readme",
   "dependencies": {
-    "nest-deep": "^1.3.1"
+    "nest-deep": "^1.3.2"
   },
   "devDependencies": {
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.5.5",
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-proposal-object-rest-spread": "^7.5.5",
+    "@babel/plugin-proposal-optional-chaining": "^7.12.1",
     "@babel/plugin-transform-runtime": "^7.5.5",
     "@babel/preset-env": "^7.5.5",
     "@babel/preset-react": "^7.0.0",
@@ -51,12 +52,13 @@
     "@types/react": "^16.9.1",
     "babel-loader": "^8.0.6",
     "cross-env": "^5.2.0",
-    "prettier": "^1.18.2",
+    "prettier": "^1.19.1",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
     "rimraf": "^2.6.3",
     "ts-loader": "^6.0.4",
     "tslint": "^5.18.0",
+    "tslint-config-prettier": "^1.18.0",
     "typescript": "^3.5.3",
     "uglifyjs-webpack-plugin": "^2.2.0",
     "webpack": "^4.39.1",

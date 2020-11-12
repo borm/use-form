@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import Api from '../api';
+import { useMemo } from 'react';
+import Api, { FormState } from '../api';
 import useSubscription from '../hooks/useSubscription';
 
 export type useFormProps = {
@@ -12,29 +12,30 @@ export type useFormProps = {
 const useForm = (props: useFormProps) => {
   const { initialValues, initialErrors, validate, onSubmit } = props;
 
-  const [{ api, initialState }] = useState(() => {
-    // tslint:disable-next-line:no-shadowed-variable
-    const api = new Api({
-      initialValues,
-      initialErrors,
-      validate,
-      onSubmit,
-    });
-    return { api, initialState: api.getState() };
-  });
+  const api = useMemo(
+    () =>
+      new Api({
+        initialValues,
+        initialErrors,
+        validate,
+        onSubmit,
+      }),
+    []
+  );
 
-  const state = useSubscription(
+  const state: FormState = useSubscription(
     useMemo(
       () => ({
         getState: api.getState,
         subscribe: (callback: () => void) => {
-          api.listener.on('change', callback);
-          return () => api.listener.off('change');
+          api.listener.on('subscribe', callback);
+          return () => api.listener.off('subscribe');
         },
       }),
-      [initialState],
-    ),
+      []
+    )
   );
+
   return {
     api,
     state,

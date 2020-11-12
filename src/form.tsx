@@ -1,9 +1,15 @@
 import React, { ReactNode } from 'react';
+import { FormState, handleReset, handleSubmit } from './api';
 import { FormProvider } from './context';
 import useForm, { useFormProps } from './hooks/useForm';
 
+export type FormRenderProps = FormState & {
+  handleSubmit: handleSubmit;
+  handleReset: handleReset;
+};
+
 type FormProps = useFormProps & {
-  children: (props: object) => ReactNode;
+  children: (props: FormRenderProps) => ReactNode;
 };
 
 const Form = ({ children, ...props }: FormProps) => {
@@ -18,6 +24,7 @@ const Form = ({ children, ...props }: FormProps) => {
       value={{
         setField: api.setField,
         getField: api.getField,
+        getMeta: api.getMeta,
         getState: api.getState,
       }}
     >

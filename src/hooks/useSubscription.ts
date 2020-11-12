@@ -1,14 +1,14 @@
 import { flatten } from 'nest-deep';
 import { useEffect, useState } from 'react';
+import { FormState } from '../api';
 import isEqual from '../helpers/isEqual';
 
 type SubscriptionProps = {
-  getState: () => any;
+  getState: () => FormState;
   subscribe: (checkForUpdates: () => void) => any;
 };
 
-export default function useSubscription(props: SubscriptionProps) {
-  const { getState, subscribe } = props;
+export default function useSubscription({ getState, subscribe }: SubscriptionProps) {
   const [state, setState] = useState(getState());
 
   useEffect(() => {
@@ -19,18 +19,17 @@ export default function useSubscription(props: SubscriptionProps) {
         return;
       }
 
-      return setState((prevState: object) => {
-        const nextState = getState();
-        if (isEqual(flatten(prevState), flatten(nextState))) {
+      const nextState = getState();
+      return setState((prevState: FormState) => {
+        if (isEqual(flatten(state), flatten(nextState))) {
           return prevState;
         }
 
         return nextState;
       });
     };
-    const unsubscribe = subscribe(checkForUpdates);
-
     checkForUpdates();
+    const unsubscribe = subscribe(checkForUpdates);
 
     return () => {
       didUnsubscribe = true;

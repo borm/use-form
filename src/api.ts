@@ -1,42 +1,41 @@
 import { flatten, nested } from 'nest-deep';
 import { SyntheticEvent } from 'react';
-import { FieldState, FieldValue } from './field';
+import { FieldInput, FieldMeta, FieldMountState, FieldValue } from './field';
+import get from './helpers/get';
 import isEmpty from './helpers/isEmpty';
+import isEqual from './helpers/isEqual';
 import isEvent from './helpers/isEvent';
 import noop from './helpers/noop';
 import { isObject } from './helpers/typeOf';
 
-type ApiProps = {
-  initialValues: { [key: string]: any };
-  initialErrors: { [key: string]: any };
-  validate: (values: object) => undefined | object;
-  onSubmit: (values: object) => void;
-};
+export type getField = (name: string) => FieldInput;
+export type getMeta = (name: string) => FieldMeta;
 
-type FormState = {
-  fields: object;
-  values: object;
-  errors: object;
-};
-
-export type getField = (name?: string) => FieldState;
+type MetaKey = 'touched' | 'errors' | 'validations';
 export type setField = (
-  name: string,
+  name: string
 ) => {
-  mount: (props: FieldState) => FieldState;
-  value: (value: any) => FieldState;
-  error: (error: any) => FieldState;
-  unmount: (value?: any) => void;
+  mount: (props: FieldMountState) => FieldInput;
+  unmount: () => void;
+  value: (value: any) => FieldInput;
+  error: (error: any) => FieldInput;
+  meta: (metaKey: MetaKey, metaValue: any) => FieldInput;
 };
 
-export type getDefaultValue = (name: string, defaultValue?: any) => any;
-export type getValue = (name: string, event: any) => FieldValue;
-export type setValue = (name: string, value: any) => FieldState;
-
-export type getDefaultError = (name: string) => any;
-export type setError = (name: string, error?: any) => FieldState;
+export type FormState = {
+  fields: { [key: string]: FieldInput };
+  values: { [key: string]: any };
+  // meta
+  errors: { [key: string]: string };
+  touched: { [key: string]: boolean };
+  submitting: boolean;
+  valid: boolean;
+};
 
 export type getState = () => FormState;
+
+export type handleSubmit = (event: SyntheticEvent<HTMLFormElement>) => void;
+export type handleReset = (event: SyntheticEvent & FormState) => void;
 
 function mapped(map: Map<string, any>): { [key: string]: any } {
   return Array.from(map.entries()).reduce(
@@ -44,9 +43,11 @@ function mapped(map: Map<string, any>): { [key: string]: any } {
       ...accumulator,
       [key]: value,
     }),
-    {},
+    {}
   );
 }
+
+const { keys } = Object;
 
 export default class Api {
   public listener: {
@@ -55,83 +56,151 @@ export default class Api {
     emit: () => void;
   } = {
     on: (name, callback) => this.listeners.set(name, callback),
-    off: (name) => this.listeners.delete(name),
-    emit: () => this.listeners.forEach((listener) => listener()),
+    off: name => this.listeners.delete(name),
+    emit: async () => this.listeners.forEach(listener => listener()),
   };
+  private listeners: Map<string, () => void> = new Map();
+
   private readonly validate: (
-    values: object,
+    values: object
   ) => undefined | { [key: string]: any };
   private readonly onSubmit: (values: object) => void;
 
   private readonly initialValues: Map<string, FieldValue> = new Map();
   private readonly initialErrors: Map<string, any> = new Map();
-  private readonly fields: Map<string, FieldState> = new Map();
+  private readonly fields: Map<string, FieldInput> = new Map();
   private readonly values: Map<string, FieldValue> = new Map();
-  private readonly errors: Map<string, any> = new Map();
+  private readonly meta: {
+    touched?: Map<string, any>;
+    errors?: Map<string, any>;
+    validations?: Map<string, any>;
+  } = {
+    errors: new Map(),
+    touched: new Map(),
+    validations: new Map(),
+  };
 
-  private listeners: Map<string, () => void> = new Map();
+  private submitting: boolean = false;
 
   constructor({
-                validate,
-                onSubmit,
-                initialValues = {},
-                initialErrors = {},
-              }: ApiProps) {
+    validate = noop,
+    onSubmit = noop,
+    initialValues = {},
+    initialErrors = {},
+  }: {
+    initialValues: {};
+    initialErrors: {};
+    validate: (values: object) => undefined | object;
+    onSubmit: (values: object) => void;
+  }) {
     this.validate = validate;
     this.onSubmit = onSubmit;
 
     const values = flatten(initialValues);
     const errors = flatten(initialErrors);
 
-    Object.keys(values).map((key) => {
+    keys(values).map(key => {
       this.initialValues.set(key, values[key]);
       this.setValue(key, values[key]);
     });
 
-    Object.keys(errors).map((key) => {
+    keys(errors).map(key => {
       this.initialErrors.set(key, errors[key]);
       this.setError(key, errors[key]);
     });
   }
 
+  public handleReset: handleReset = event => {
+    const prevValueKeys = keys(mapped(this.values));
+    this.values.clear();
+    this.meta.errors.clear();
+    this.meta.touched.clear();
+
+    if (isEvent(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+      prevValueKeys.map(key => {
+        this.setValue(key, this.getDefaultValue(key));
+      });
+      keys(mapped(this.initialErrors)).map(key => {
+        this.setError(key, this.getDefaultError(key));
+      });
+    } else if (isObject(event) && !isEmpty(event)) {
+      this.initialValues.clear();
+      this.initialErrors.clear();
+
+      const nextValues = flatten(event.values);
+      const nextErrors = flatten(event.errors);
+      prevValueKeys.map(key => {
+        this.initialValues.set(key, nextValues[key]);
+        this.setValue(key, this.getDefaultValue(key));
+      });
+      keys(nextErrors).map(key => {
+        this.initialErrors.set(key, nextErrors[key]);
+        this.setError(key, nextErrors[key]);
+      });
+    }
+
+    this.listener.emit();
+  };
+
+  public handleSubmit: handleSubmit = async event => {
+    if (isEvent(event)) {
+      event.preventDefault();
+      event.stopPropagation();
+    }
+    this.submitting = true;
+    await this.listener.emit();
+    this.handleValidate(this.getState().values);
+    const { errors, values } = this.getState();
+    if (!errors || isEmpty(errors)) {
+      await this.onSubmit(values);
+    }
+    this.submitting = false;
+    this.listener.emit();
+  };
+
   public getState: getState = () => {
+    const errors = nested(mapped(this.meta.errors));
     const State: FormState = {
-      fields: mapped(this.fields),
+      fields: nested(mapped(this.fields)),
       values: nested(mapped(this.values)),
-      errors: nested(mapped(this.errors)),
+      errors,
+      touched: nested(mapped(this.meta.touched)),
+      valid: keys(errors).length === 0,
+      submitting: this.submitting,
     };
     return State;
-  }
+  };
 
-  public getField: getField = (name) => {
-    const State: FieldState = {
-      value: this.values.get(name),
-      error: this.errors.get(name),
-      validate: noop,
-      ...this.fields.get(name),
+  public getField: getField = name => {
+    return {
+      value: get(nested(mapped(this.values)), name, ''),
+      ...get(nested(mapped(this.fields)), name, {}),
     };
+  };
 
-    return State;
-  }
-
-  public setField: setField = (name) => ({
-    mount: ({ type = 'text', validate = noop, multiple }: FieldState) => {
+  public setField: setField = name => ({
+    mount: ({ type = 'text', validate = noop, multiple }: FieldMountState) => {
       this.fields.set(name, {
         type,
         name,
-        validate,
         multiple,
       });
       this.setValue(name, this.getDefaultValue(name));
-      this.setError(name, this.getDefaultError(name));
+      const defaultError = this.getDefaultError(name);
+      this.setError(name, defaultError);
+      this.setMeta(name, 'validations', validate);
       return this.getField(name);
     },
     unmount: () => {
       this.fields.delete(name);
       this.values.delete(name);
-      this.errors.delete(name);
+      this.meta.errors.delete(name);
+      this.meta.touched.delete(name);
+      this.meta.validations.delete(name);
     },
-    value: (event) => {
+    value: event => {
       const value = this.getValue(name, event);
       const state = this.setValue(name, value);
       this.setError(name);
@@ -141,59 +210,49 @@ export default class Api {
       this.listener.emit();
       return state;
     },
-    error: (error) => {
+    error: error => {
       const state = this.setError(name, error);
       this.listener.emit();
       return state;
     },
-  })
+    meta: (metaKey, metaValue) => {
+      this.setMeta(name, metaKey, metaValue);
+      const state = this.getField(name);
+      this.listener.emit();
+      return state;
+    },
+  });
 
-  public handleReset: (event: SyntheticEvent) => void = (event) => {
-    const prevValues = mapped(this.values);
-    this.errors.clear();
-    this.values.clear();
-
-    Object.keys(mapped(this.initialErrors)).map((key) => {
-      this.setError(key, this.getDefaultError(key));
-    });
-
-    const prevKeys = Object.keys(prevValues);
-    if (isEvent(event)) {
-      event.preventDefault();
-      event.stopPropagation();
-      prevKeys.map((key) => {
-        this.setValue(key, this.getDefaultValue(key));
-      });
-    } else if (isObject(event) && !isEmpty(event)) {
-      const nextValues = flatten(event);
-      prevKeys.map((key) => {
-        this.setValue(key, nextValues[key] || this.getDefaultValue(key));
-      });
-    }
-
-    this.listener.emit();
-  }
-
-  public handleSubmit: (
-    event: SyntheticEvent<HTMLFormElement>,
-  ) => void = (event) => {
-    if (isEvent(event)) {
-      event.preventDefault();
-      event.stopPropagation();
-    }
-    this.handleValidate();
-    this.listener.emit();
-    const { errors, values } = this.getState();
-    if (!errors || isEmpty(errors)) {
-      this.onSubmit(values);
-    }
-  }
-
-  private getDefaultValue: getDefaultValue = (name) => {
-    const { type, multiple } = this.fields.get(name) || {
-      type: 'text',
-      multiple: false,
+  public getMeta: getMeta = name => {
+    /*if (name === 'color[0]') {
+      console.log(nested(mapped(this.meta.errors)));
+      console.log(get(nested(mapped(this.meta.errors)), name));
+    }*/
+    const State: FieldMeta = {
+      error: get(nested(mapped(this.meta.errors)), name),
+      // error: this.meta.errors.get(name),
+      touched: this.meta.touched.get(name),
+      validate: this.meta.validations.get(name),
     };
+
+    return State;
+  };
+
+  private setMeta: (
+    name: string,
+    metaKey: MetaKey,
+    metaValue: any
+  ) => FieldInput = (name, metaKey, metaValue) => {
+    if (metaValue) {
+      this.meta[metaKey].set(name, metaValue);
+    } else {
+      this.meta[metaKey].delete(name);
+    }
+    return this.getField(name);
+  };
+
+  private getDefaultValue: (name: string) => any = name => {
+    const { type, multiple } = this.getField(name);
 
     let defaultValue;
     switch (type) {
@@ -201,6 +260,7 @@ export default class Api {
         defaultValue = false;
         break;
       case 'select':
+        defaultValue = '';
         if (multiple) {
           defaultValue = [];
         }
@@ -209,10 +269,13 @@ export default class Api {
         defaultValue = '';
         break;
     }
-    return this.initialValues.get(name) || defaultValue;
-  }
+    return get(nested(mapped(this.initialValues)), name, defaultValue);
+  };
 
-  private getValue: getValue = (name, event) => {
+  private getValue: (
+    name: string,
+    event: SyntheticEvent<HTMLFormElement> | any
+  ) => FieldValue = (name, event) => {
     if (isEvent(event)) {
       const { value, checked, options } = event.target;
       const { type, multiple } = this.getField(name);
@@ -224,7 +287,8 @@ export default class Api {
           if (multiple) {
             const selected = [];
             if (options && options.length) {
-              for (const index of options) {
+              // tslint:disable-next-line:prefer-for-of
+              for (let index = 0; index < options.length; index++) {
                 const option = options[index];
 
                 if (option.selected) {
@@ -240,31 +304,63 @@ export default class Api {
       }
     }
     return event;
-  }
+  };
 
-  private setValue: setValue = (name, value) => {
+  private setValue: (name: string, value: any) => FieldInput = (
+    name,
+    value
+  ) => {
+    if (Array.isArray(value)) {
+      const prevValues = flatten({
+        [name]: get(nested(mapped(this.values)), name),
+      });
+
+      const nextValues = flatten({ [name]: value });
+      if (!isEqual(prevValues, nextValues)) {
+        for (const key in prevValues) {
+          if (prevValues.hasOwnProperty(key)) {
+            this.values.delete(key);
+          }
+        }
+        for (const key in nextValues) {
+          if (nextValues.hasOwnProperty(key)) {
+            this.values.set(key, nextValues[key]);
+          }
+        }
+      }
+    }
     this.values.set(name, value);
     return this.getField(name);
-  }
+  };
 
-  private getDefaultError: getDefaultError = (name) =>
-    this.initialErrors.get(name)
+  private getDefaultError: (name: string) => any = name =>
+    get(nested(mapped(this.initialErrors)), name);
 
-  private setError: setError = (name, error) => {
-    if (error) {
-      this.errors.set(name, error);
-    } else {
-      this.errors.delete(name);
-    }
-    return this.getField(name);
-  }
+  private setError: (name: string, error?: any) => FieldInput = (
+    name,
+    error
+  ) => {
+    this.setMeta(name, 'touched', Boolean(error));
+    return this.setMeta(name, 'errors', error);
+  };
 
-  private handleValidate = (values: object = this.getState().values) => {
-    const errors = this.validate(values) || {};
+  private handleValidate = (valuesForValidate: object = {}) => {
+    const { values } = this.getState();
+    const allValues = {
+      ...values,
+      ...flatten(values),
+    };
 
-    Object.keys(values).forEach((name) => {
-      const { value, validate } = this.getField(name);
-      this.setError(name, validate(value, values) || errors[name]);
+    const errors = flatten(this.validate(allValues) || {});
+
+    keys({
+      ...valuesForValidate,
+      ...flatten(valuesForValidate),
+    }).forEach(name => {
+      const { value } = this.getField(name);
+      const { validate } = this.getMeta(name);
+      const error = (validate && validate(value, allValues)) || errors[name];
+      this.setError(name, error);
     });
-  }
+  };
 }

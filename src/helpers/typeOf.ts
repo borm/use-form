@@ -1,11 +1,19 @@
-export default function typeOf(operand: any) {
-  return Object.prototype.toString.call(operand).slice(8, -1).toLowerCase();
-}
+const typeOf = (operand: any) => ({
+  is: (...types: string[]) =>
+    types.includes(
+      Object.prototype.toString
+        .call(operand)
+        .slice(8, -1)
+        .toLowerCase()
+    ),
+});
 
 export function isArray(array: any) {
-  return typeOf(array) === 'array';
+  return typeOf(array).is('array');
 }
 
 export function isObject(object: any) {
-  return typeOf(object) === 'object';
+  return typeOf(object).is('object');
 }
+
+export default typeOf;
