@@ -1,7 +1,7 @@
 {
   "name": "use-form",
   "description": "use-form",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "main": "./lib/index.js",
   "scripts": {
     "dev": "NODE_PATH=. webpack-dev-server",
