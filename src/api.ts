@@ -110,8 +110,9 @@ export default class Api {
     });
   }
 
-  public handleReset: handleReset = event => {
-    const prevValueKeys = keys(mapped(this.values));
+  public handleReset: handleReset = async event => {
+    const prevValues = mapped(this.values);
+    const prevValueKeys = keys({ ...prevValues, ...flatten(prevValues) });
     this.values.clear();
     this.meta.errors.clear();
     this.meta.touched.clear();
@@ -131,7 +132,7 @@ export default class Api {
 
       const nextValues = flatten(event.values);
       const nextErrors = flatten(event.errors);
-      prevValueKeys.map(key => {
+      keys(nextValues).map(key => {
         this.initialValues.set(key, nextValues[key]);
         this.setValue(key, this.getDefaultValue(key));
       });

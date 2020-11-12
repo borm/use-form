@@ -75,11 +75,15 @@ const useField = (props: FieldProps): FieldState => {
   return {
     input: {
       name,
-      type: type === 'select' ? undefined : type,
-      ...(type === 'checkbox' && {
-        checked: value,
+      ...(type !== 'select' && {
+        type,
       }),
-      value,
+      ...(type === 'checkbox' && {
+        checked: Boolean(value),
+      }),
+      ...(type !== 'checkbox' && {
+        value,
+      }),
       multiple,
       onChange: handleChange,
       onFocus: handleFocus,

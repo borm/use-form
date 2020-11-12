@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { render } from 'react-dom';
 import { Form, Field } from '../src';
 
@@ -6,9 +6,13 @@ const UseFormExample = () => {
   const [state, setState] = useState(0);
   const form = useRef({});
 
-  const handleReset = () => {
-    form.current.reset({ values: {}, errors: { email: 'Required!' } });
-  };
+  const handleReset = useCallback(event => {
+    event.preventDefault();
+    form.current.reset({
+      values: {},
+      errors: { 'user.email': 'Required!' },
+    });
+  }, []);
 
   return (
     <Form
@@ -152,15 +156,24 @@ const UseFormExample = () => {
               <Field
                 type="checkbox"
                 name="remember[0]"
-                component={({ input, meta: { error }, ...props }) => (
-                  <>
-                    <label htmlFor="remember">
-                      <input id="remember" {...input} {...props} />
-                      Remember me?
-                    </label>
-                    <p className="error">{error}</p>
-                  </>
-                )}
+                component={({ input, meta: { error }, ...props }) => {
+                  console.log(input.checked);
+                  return (
+                    <>
+                      <pre>{JSON.stringify(input.checked)}</pre>
+                      <label htmlFor="remember[0]">
+                        <input
+                          id="remember[0]"
+                          {...input}
+                          {...props}
+                          checked={input.checked}
+                        />
+                        Remember me?
+                      </label>
+                      <p className="error">{error}</p>
+                    </>
+                  );
+                }}
                 validate={value => {
                   if (!value) {
                     return 'Should be checked';
