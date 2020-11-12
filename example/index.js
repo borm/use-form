@@ -92,15 +92,6 @@ const UseFormExample = () => {
                     return 'Password length should be more 3 symbols';
                   }
                 }}
-                onFocus={event => {
-                  // onFocus
-                }}
-                onBlur={event => {
-                  // onBlur
-                }}
-                onChange={event => {
-                  // onChange
-                }}
               />
             </fieldset>
             <fieldset>
@@ -120,7 +111,6 @@ const UseFormExample = () => {
                   </>
                 )}
                 validate={value => {
-                  // console.log('color', value);
                   if (value && value.length < 2) {
                     return 'You should select 2 options min';
                   }
