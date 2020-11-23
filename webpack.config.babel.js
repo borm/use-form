@@ -6,13 +6,10 @@ const env = process.env.NODE_ENV || 'development';
 const isDev = env === 'development';
 
 const source = path.join(__dirname, 'src');
-const entry = ['./index.ts'];
-const output = path.join(__dirname);
+export const output = path.join(__dirname);
 
 let externals;
-if (typeof process.env.NODE_ENV === 'undefined') {
-  entry.push('../example/index.js');
-} else {
+if (typeof process.env.NODE_ENV !== 'undefined') {
   externals = {
     react: 'React',
     'react-dom': 'ReactDOM',
@@ -21,20 +18,13 @@ if (typeof process.env.NODE_ENV === 'undefined') {
 
 export default {
   devtool: isDev ? 'inline-source-map' : false,
-  devServer: {
-    contentBase: output,
-    publicPath: '/',
-    historyApiFallback: {
-      index: '/example/index.html',
-    },
-  },
   mode: env,
   context: source,
   resolve: {
     modules: ['node_modules', source],
     extensions: ['.tsx', '.ts', '.jsx', '.js'],
   },
-  entry,
+  entry: ['./index.ts'],
   output: {
     path: output,
     filename: `dist/use-form${isDev ? '.js' : '.min.js'}`,

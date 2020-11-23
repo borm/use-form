@@ -157,7 +157,7 @@ const UseFormExample = () => {
                 type="checkbox"
                 name="remember[0]"
                 component={({ input, meta: { error }, ...props }) => {
-                  console.log(input.checked);
+                  // console.log(input.checked);
                   return (
                     <>
                       <pre>{JSON.stringify(input.checked)}</pre>
